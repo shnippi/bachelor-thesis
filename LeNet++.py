@@ -25,18 +25,18 @@ class LeNet_plus_plus(nn.Module):
         self.prelu_act = nn.PReLU()
 
 
-def forward(self, x):
-    # compute first convolution block output
-    x =self.prelu_act(self.pool(self.batch_norm1(self.conv1_2(self.conv1_1(x)))))
-    # compute second convolution block output
-    x =self.prelu_act(self.pool(self.batch_norm2(self.conv2_2(self.conv2_1(x)))))
-    # compute third convolution block output
-    x =self.prelu_act(self.pool(self.batch_norm3(self.conv3_2(self.conv3_1(x)))))
-    # turn into 1D representation (1D per batch element)
-    x = x.view(-1, self.conv3_2.out_channels * 3 * 3)
-    # first fully-connected layer to compute 2D feature space
-    z = self.fc1(x)
-    # second fully-connected layer to compute the logits
-    y = self.fc2(z)
-    # return both the logits and the deep features
-    return y, z
+    def forward(self, x):
+        # compute first convolution block output
+        x =self.prelu_act(self.pool(self.batch_norm1(self.conv1_2(self.conv1_1(x)))))
+        # compute second convolution block output
+        x =self.prelu_act(self.pool(self.batch_norm2(self.conv2_2(self.conv2_1(x)))))
+        # compute third convolution block output
+        x =self.prelu_act(self.pool(self.batch_norm3(self.conv3_2(self.conv3_1(x)))))
+        # turn into 1D representation (1D per batch element)
+        x = x.view(-1, self.conv3_2.out_channels * 3 * 3)
+        # first fully-connected layer to compute 2D feature space
+        z = self.fc1(x)
+        # second fully-connected layer to compute the logits
+        y = self.fc2(z)
+        # return both the logits and the deep features
+        return y, z
