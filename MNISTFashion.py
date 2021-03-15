@@ -24,7 +24,7 @@ test_data = datasets.FashionMNIST(
     transform=ToTensor(),
 )
 
-batch_size = 64
+batch_size = 4
 
 # Create data loaders.
 train_dataloader = DataLoader(training_data, batch_size=batch_size)
@@ -74,6 +74,8 @@ def train(dataloader, model, loss_fn, optimizer):
 
         # Compute prediction error
         pred = model(X)
+        print(pred)
+
         loss = loss_fn(pred, y)
 
         # Backpropagation

@@ -24,7 +24,7 @@ test_data = datasets.FashionMNIST(
     transform=ToTensor(),
 )
 
-batch_size = 64
+batch_size = 4
 
 # Create data loaders.
 train_dataloader = DataLoader(training_data, batch_size=batch_size)
@@ -80,16 +80,15 @@ class LeNet_plus_plus(nn.Module):
         x = self.prelu_act(self.pool(self.batch_norm3(self.conv3_2(self.conv3_1(x)))))
         # turn into 1D representation (1D per batch element)
         x = x.view(-1, self.conv3_2.out_channels * 3 * 3)
-        # first fully-connected layer to compute 2D feature space
+        # first fully-connected layer to compute 2D feature space. THIS IS THE 2D FEATURE VECTOR SPACE
         z = self.fc1(x)
         # second fully-connected layer to compute the logits
         y = self.fc2(z)
-        # return both the logits and the deep features
+        # return both the logits and the deep features. THIS IS THE PREDICTION
         return y, z
 
 
 model = LeNet_plus_plus().to(device)
-print(model)
 
 loss_fn = nn.CrossEntropyLoss()
 #loss_fn = nn.Softmax()
@@ -103,6 +102,9 @@ def train(dataloader, model, loss_fn, optimizer):
 
         # Compute prediction error
         pred = model(X)
+
+        print(pred)
+
         loss = loss_fn(pred, y)
 
         # Backpropagation
