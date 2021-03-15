@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import pytorch_lightning as pl
 
 # Download training data from open datasets.
-training_data = datasets.FashionMNIST(
+training_data = datasets.MNIST(
     root="data",
     train=True,
     download=True,
@@ -17,14 +17,14 @@ training_data = datasets.FashionMNIST(
 )
 
 # Download test data from open datasets.
-test_data = datasets.FashionMNIST(
+test_data = datasets.MNIST(
     root="data",
     train=False,
     download=True,
     transform=ToTensor(),
 )
 
-batch_size = 4
+batch_size = 64
 
 # Create data loaders.
 train_dataloader = DataLoader(training_data, batch_size=batch_size)
@@ -45,6 +45,9 @@ print("Using {} device".format(device))
 class LeNet_plus_plus(nn.Module):
     def __init__(self):
         super(LeNet_plus_plus, self).__init__()
+
+        self.featurerepr = None
+
         # first convolution block
         self.conv1_1 = nn.Conv2d(in_channels=1, out_channels=32, kernel_size=(5, 5), stride=1, padding=2)
         self.conv1_2 = nn.Conv2d(in_channels=self.conv1_1.out_channels, out_channels=32, kernel_size=(5, 5), stride=1,
@@ -81,14 +84,16 @@ class LeNet_plus_plus(nn.Module):
         # turn into 1D representation (1D per batch element)
         x = x.view(-1, self.conv3_2.out_channels * 3 * 3)
         # first fully-connected layer to compute 2D feature space. THIS IS THE 2D FEATURE VECTOR SPACE
-        z = self.fc1(x)
+        self.featurerepr = self.fc1(x)
         # second fully-connected layer to compute the logits
-        y = self.fc2(z)
+        y = self.fc2(self.featurerepr)
         # return both the logits and the deep features. THIS IS THE PREDICTION
-        return y, z
+        return y
 
 
 model = LeNet_plus_plus().to(device)
+
+print(model.featurerepr)
 
 loss_fn = nn.CrossEntropyLoss()
 #loss_fn = nn.Softmax()
@@ -102,8 +107,6 @@ def train(dataloader, model, loss_fn, optimizer):
 
         # Compute prediction error
         pred = model(X)
-
-        print(pred)
 
         loss = loss_fn(pred, y)
 
@@ -137,4 +140,5 @@ for t in range(epochs):
     print(f"Epoch {t + 1}\n-------------------------------")
     train(train_dataloader, model, loss_fn, optimizer)
     test(test_dataloader, model)
+    #print(model.featurerepr)
 print("Done!")
