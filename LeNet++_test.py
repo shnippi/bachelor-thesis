@@ -2,7 +2,7 @@ from itertools import product
 
 import torch
 from torch import nn
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, random_split
 from torchvision import datasets
 from torchvision.transforms import ToTensor, Lambda, Compose
 import matplotlib.pyplot as plt
@@ -25,6 +25,14 @@ test_data = datasets.MNIST(
 )
 
 batch_size = 64
+
+
+#only taking split
+#train_data = datasets.MNIST('data', train=True, download=True, transform=ToTensor())
+#train, val = random_split(train_data, [55000, 5000])
+#train_dataloader = DataLoader(train, batch_size=32)
+#test_dataloader = DataLoader(val, batch_size=32)
+
 
 # Create data loaders.
 train_dataloader = DataLoader(training_data, batch_size=batch_size)
