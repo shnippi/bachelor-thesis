@@ -111,12 +111,9 @@ def train(dataloader, model, loss_fn, optimizer):
     #enumerates the image in greyscale value (X) with the true label (y) in lists that are as long as the batchsize
     for batch, (X, y) in enumerate(dataloader):
 
-        print(X)
+        #print(X)
 
-        print(list(enumerate(dataloader))[0][1][1])
-        print(len([5, 0, 4, 1, 9, 2, 1, 3, 1, 4, 3, 5, 3, 6, 1, 7, 2, 8, 6, 9, 4, 0, 9, 1,
-        1, 2, 4, 3, 2, 7, 3, 8, 6, 9, 0, 5, 6, 0, 7, 6, 1, 8, 7, 9, 3, 9, 8, 5,
-        9, 3, 3, 0, 7, 4, 9, 8, 0, 9, 4, 1, 4, 4, 6, 0]))
+        #print(list(enumerate(dataloader))[0][1][1])
         X, y = X.to(device), y.to(device)
 
         # Compute prediction error
