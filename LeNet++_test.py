@@ -85,7 +85,7 @@ class LeNet_plus_plus(nn.Module):
         # activation function
         self.prelu_act = nn.PReLU()
 
-    def forward(self, x):
+    def forward(self, x, feature = False):
         # compute first convolution block output
         x = self.prelu_act(self.pool(self.batch_norm1(self.conv1_2(self.conv1_1(x)))))
         # compute second convolution block output
@@ -136,6 +136,7 @@ class entropic_openset_loss():
 loss_fn = nn.CrossEntropyLoss()
 # loss_fn = nn.Softmax()
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
+featurearray = np.array([])
 
 
 def train(dataloader, model, loss_fn, optimizer):
