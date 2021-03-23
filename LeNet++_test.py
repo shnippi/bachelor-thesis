@@ -8,6 +8,11 @@ from torchvision.transforms import ToTensor, Lambda, Compose
 import matplotlib.pyplot as plt
 import pytorch_lightning as pl
 from torch.nn import functional as F
+import numpy as np
+
+# Get cpu or gpu device for training.
+device = "cuda" if torch.cuda.is_available() else "cpu"
+print("Using {} device".format(device))
 
 # Download training data from open datasets.
 training_data = datasets.MNIST(
@@ -25,7 +30,10 @@ test_data = datasets.MNIST(
     transform=ToTensor(),
 )
 
+# Hyperparameters
 batch_size = 64
+epochs = 1
+learning_rate = 1e-3
 
 # only taking split
 # train_data = datasets.MNIST('data', train=True, download=True, transform=ToTensor())
@@ -43,10 +51,6 @@ for X, y in test_dataloader:
     print("Shape of X [N, C, H, W]: ", X.shape)
     print("Shape of y: ", y.shape, y.dtype)
     break
-
-# Get cpu or gpu device for training.
-device = "cuda" if torch.cuda.is_available() else "cpu"
-print("Using {} device".format(device))
 
 
 # Define model
@@ -113,24 +117,25 @@ class entropic_openset_loss():
         known_indexes = target != -1  # list of bools for the known indexes
         unknown_indexes = ~known_indexes  # list of bools for the unknown indexes
         catagorical_targets[known_indexes, :] = self.eye[target[known_indexes]]
-        #print(catagorical_targets)
+        # print(catagorical_targets)
         catagorical_targets[unknown_indexes, :] = self.ones.expand(
             (torch.sum(unknown_indexes).item(), self.num_of_classes)) * self.unknowns_multiplier
-        #print(catagorical_targets)
+        # print(catagorical_targets)
 
         log_values = F.log_softmax(logit_values, dim=1)
         negative_log_values = -1 * log_values
         loss = negative_log_values * catagorical_targets
+        # TODO: why is there a mean here?
         sample_loss = torch.mean(loss, dim=1)
         if sample_weights is not None:
             sample_loss = sample_loss * sample_weights
         return sample_loss.mean()
 
 
-loss_fn = entropic_openset_loss()
-#loss_fn = nn.CrossEntropyLoss()
-#loss_fn = nn.Softmax()
-optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
+# loss_fn = entropic_openset_loss()
+loss_fn = nn.CrossEntropyLoss()
+# loss_fn = nn.Softmax()
+optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 
 
 def train(dataloader, model, loss_fn, optimizer):
@@ -139,7 +144,7 @@ def train(dataloader, model, loss_fn, optimizer):
     # ( 0 (batchnumber) , tensor([.. grayscale values ..]) , tensor([.. labels ..]) )  <-- for batchsize=1
     for batch, (X, y) in enumerate(dataloader):
 
-        # print(list(enumerate(dataloader))[0]) prints first batch
+        # print(list(enumerate(dataloader))[1]) #prints a batch
         X, y = X.to(device), y.to(device)
 
         # Compute prediction error
@@ -164,7 +169,7 @@ def test(dataloader, model):
     size = len(dataloader.dataset)
     model.eval()
     test_loss, correct = 0, 0
-    with torch.no_grad(): # dont need the backward prop
+    with torch.no_grad():  # dont need the backward prop
         for X, y in dataloader:
             X, y = X.to(device), y.to(device)
             pred = model(X)
@@ -175,10 +180,16 @@ def test(dataloader, model):
     print(f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
 
 
-epochs = 5
 for t in range(epochs):
     print(f"Epoch {t + 1}\n-------------------------------")
     train(train_dataloader, model, loss_fn, optimizer)
     test(test_dataloader, model)
-    #print(model.featurerepr)
 print("Done!")
+
+
+features = model.featurerepr
+features = features.to("cpu")
+features = features.numpy()
+print(features)
+plt.plot(features, "ro")
+plt.show()
