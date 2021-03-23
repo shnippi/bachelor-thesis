@@ -18,7 +18,7 @@ training_data = datasets.MNIST(
 )
 
 # Download test data from open datasets.
-test_data = datasets.FashionMNIST(
+test_data = datasets.MNIST(
     root="data",
     train=False,
     download=True,
@@ -27,12 +27,11 @@ test_data = datasets.FashionMNIST(
 
 batch_size = 64
 
-
-#only taking split
-#train_data = datasets.MNIST('data', train=True, download=True, transform=ToTensor())
-#train, val = random_split(train_data, [55000, 5000])
-#train_dataloader = DataLoader(train, batch_size=32)
-#test_dataloader = DataLoader(val, batch_size=32)
+# only taking split
+# train_data = datasets.MNIST('data', train=True, download=True, transform=ToTensor())
+# train, val = random_split(train_data, [55000, 5000])
+# train_dataloader = DataLoader(train, batch_size=32)
+# test_dataloader = DataLoader(val, batch_size=32)
 
 
 # Create data loaders.
@@ -48,28 +47,6 @@ for X, y in test_dataloader:
 # Get cpu or gpu device for training.
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print("Using {} device".format(device))
-
-
-class entropic_openset_loss():
-    def __init__(self, num_of_classes=10):
-        self.num_of_classes = num_of_classes
-        self.eye = torch.eye(self.num_of_classes).to(device)
-        self.ones = torch.ones(self.num_of_classes).to(device)
-        self.unknowns_multiplier = 1. / self.num_of_classes
-
-    def __call__(self, logit_values, target, sample_weights=None):
-        catagorical_targets = torch.zeros(logit_values.shape).to(device)
-        known_indexes = target != -1
-        unknown_indexes = ~known_indexes
-        catagorical_targets[known_indexes, :] = self.eye[target[known_indexes]]
-        catagorical_targets[unknown_indexes, :] = self.ones.expand((torch.sum(unknown_indexes).item(),self.num_of_classes)) * self.unknowns_multiplier
-        log_values = F.log_softmax(logit_values, dim=1)
-        negative_log_values = -1 * log_values
-        loss = negative_log_values * catagorical_targets
-        sample_loss = torch.mean(loss, dim=1)
-        if sample_weights is not None:
-            sample_loss = sample_loss * sample_weights
-        return sample_loss
 
 
 # Define model
@@ -104,7 +81,6 @@ class LeNet_plus_plus(nn.Module):
         # activation function
         self.prelu_act = nn.PReLU()
 
-
     def forward(self, x):
         # compute first convolution block output
         x = self.prelu_act(self.pool(self.batch_norm1(self.conv1_2(self.conv1_1(x)))))
@@ -112,7 +88,7 @@ class LeNet_plus_plus(nn.Module):
         x = self.prelu_act(self.pool(self.batch_norm2(self.conv2_2(self.conv2_1(x)))))
         # compute third convolution block output
         x = self.prelu_act(self.pool(self.batch_norm3(self.conv3_2(self.conv3_1(x)))))
-        # turn into 1D representation (1D per batch element)
+        # flattens it --> turn into 1D representation (1D per batch element)
         x = x.view(-1, self.conv3_2.out_channels * 3 * 3)
         # first fully-connected layer to compute 2D feature space. THIS IS THE 2D FEATURE VECTOR SPACE
         self.featurerepr = self.fc1(x)
@@ -124,27 +100,53 @@ class LeNet_plus_plus(nn.Module):
 
 model = LeNet_plus_plus().to(device)
 
-#loss_fn = entropic_openset_loss()
-loss_fn = nn.CrossEntropyLoss()
+
+class entropic_openset_loss():
+    def __init__(self, num_of_classes=10):
+        self.num_of_classes = num_of_classes
+        self.eye = torch.eye(self.num_of_classes).to(device)
+        self.ones = torch.ones(self.num_of_classes).to(device)
+        self.unknowns_multiplier = 1. / self.num_of_classes
+
+    def __call__(self, logit_values, target, sample_weights=None):
+        catagorical_targets = torch.zeros(logit_values.shape).to(device)
+        known_indexes = target != -1  # list of bools for the known indexes
+        unknown_indexes = ~known_indexes  # list of bools for the unknown indexes
+        catagorical_targets[known_indexes, :] = self.eye[target[known_indexes]]
+        #print(catagorical_targets)
+        catagorical_targets[unknown_indexes, :] = self.ones.expand(
+            (torch.sum(unknown_indexes).item(), self.num_of_classes)) * self.unknowns_multiplier
+        #print(catagorical_targets)
+
+        log_values = F.log_softmax(logit_values, dim=1)
+        negative_log_values = -1 * log_values
+        loss = negative_log_values * catagorical_targets
+        sample_loss = torch.mean(loss, dim=1)
+        if sample_weights is not None:
+            sample_loss = sample_loss * sample_weights
+        return sample_loss.mean()
+
+
+loss_fn = entropic_openset_loss()
+#loss_fn = nn.CrossEntropyLoss()
 #loss_fn = nn.Softmax()
 optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
 
 
 def train(dataloader, model, loss_fn, optimizer):
     size = len(dataloader.dataset)
-    #enumerates the image in greyscale value (X) with the true label (y) in lists that are as long as the batchsize
+    # enumerates the image in greyscale value (X) with the true label (y) in lists that are as long as the batchsize
+    # ( 0 (batchnumber) , tensor([.. grayscale values ..]) , tensor([.. labels ..]) )  <-- for batchsize=1
     for batch, (X, y) in enumerate(dataloader):
 
-        #print(X)
-
-        #print(list(enumerate(dataloader))[0][1][1])
+        # print(list(enumerate(dataloader))[0]) prints first batch
         X, y = X.to(device), y.to(device)
 
         # Compute prediction error
         pred = model(X)
 
-        #print(pred)
-        #print(y)
+        # print(pred)
+        # print(y)
 
         loss = loss_fn(pred, y)
 
@@ -162,7 +164,7 @@ def test(dataloader, model):
     size = len(dataloader.dataset)
     model.eval()
     test_loss, correct = 0, 0
-    with torch.no_grad():
+    with torch.no_grad(): # dont need the backward prop
         for X, y in dataloader:
             X, y = X.to(device), y.to(device)
             pred = model(X)
@@ -178,5 +180,5 @@ for t in range(epochs):
     print(f"Epoch {t + 1}\n-------------------------------")
     train(train_dataloader, model, loss_fn, optimizer)
     test(test_dataloader, model)
-    print(model.featurerepr)
+    #print(model.featurerepr)
 print("Done!")
