@@ -7,6 +7,7 @@ from torchvision import datasets
 from torchvision.transforms import ToTensor, Lambda, Compose
 import matplotlib.pyplot as plt
 import pytorch_lightning as pl
+from torch.nn import functional as F
 
 # Download training data from open datasets.
 training_data = datasets.MNIST(
@@ -17,7 +18,7 @@ training_data = datasets.MNIST(
 )
 
 # Download test data from open datasets.
-test_data = datasets.MNIST(
+test_data = datasets.FashionMNIST(
     root="data",
     train=False,
     download=True,
@@ -47,6 +48,28 @@ for X, y in test_dataloader:
 # Get cpu or gpu device for training.
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print("Using {} device".format(device))
+
+
+class entropic_openset_loss():
+    def __init__(self, num_of_classes=10):
+        self.num_of_classes = num_of_classes
+        self.eye = torch.eye(self.num_of_classes).to(device)
+        self.ones = torch.ones(self.num_of_classes).to(device)
+        self.unknowns_multiplier = 1. / self.num_of_classes
+
+    def __call__(self, logit_values, target, sample_weights=None):
+        catagorical_targets = torch.zeros(logit_values.shape).to(device)
+        known_indexes = target != -1
+        unknown_indexes = ~known_indexes
+        catagorical_targets[known_indexes, :] = self.eye[target[known_indexes]]
+        catagorical_targets[unknown_indexes, :] = self.ones.expand((torch.sum(unknown_indexes).item(),self.num_of_classes)) * self.unknowns_multiplier
+        log_values = F.log_softmax(logit_values, dim=1)
+        negative_log_values = -1 * log_values
+        loss = negative_log_values * catagorical_targets
+        sample_loss = torch.mean(loss, dim=1)
+        if sample_weights is not None:
+            sample_loss = sample_loss * sample_weights
+        return sample_loss
 
 
 # Define model
@@ -101,6 +124,7 @@ class LeNet_plus_plus(nn.Module):
 
 model = LeNet_plus_plus().to(device)
 
+#loss_fn = entropic_openset_loss()
 loss_fn = nn.CrossEntropyLoss()
 #loss_fn = nn.Softmax()
 optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
@@ -118,6 +142,9 @@ def train(dataloader, model, loss_fn, optimizer):
 
         # Compute prediction error
         pred = model(X)
+
+        #print(pred)
+        #print(y)
 
         loss = loss_fn(pred, y)
 
