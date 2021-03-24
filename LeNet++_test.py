@@ -17,7 +17,7 @@ print("Using {} device".format(device))
 
 
 # Hyperparameters
-batch_size = 64 if torch.cuda.is_available() else 20
+batch_size = 64 if torch.cuda.is_available() else 5
 epochs = 1
 learning_rate = 1e-3
 
@@ -118,28 +118,34 @@ class entropic_openset_loss():
         self.ones = torch.ones(self.num_of_classes).to(device)
         self.unknowns_multiplier = 1. / self.num_of_classes
 
-    def __call__(self, logit_values, target, sample_weights=None):
-        catagorical_targets = torch.zeros(logit_values.shape).to(device)
+    def __call__(self, logit_values, target, sample_weights=None): # logit_values --> tensor with #batchsize#
+        # samples, per sample 10 values with the respective logits for each class.
+        # target f.e. tensor([0, 4, 1, 9, 2]) with len = batchsize
+
+        catagorical_targets = torch.zeros(logit_values.shape).to(device)# tensor with size (batchsize, #classes), all logits to 0
         known_indexes = target != -1  # list of bools for the known indexes
         unknown_indexes = ~known_indexes  # list of bools for the unknown indexes
-        catagorical_targets[known_indexes, :] = self.eye[target[known_indexes]]
-        # print(catagorical_targets)
+        catagorical_targets[known_indexes, :] = self.eye[target[known_indexes]]#puts the logits to 1 at the correct index for each sample
+        #print(catagorical_targets)
         catagorical_targets[unknown_indexes, :] = self.ones.expand(
             (torch.sum(unknown_indexes).item(), self.num_of_classes)) * self.unknowns_multiplier
-        # print(catagorical_targets)
+        #print(catagorical_targets)
 
-        log_values = F.log_softmax(logit_values, dim=1)
+        log_values = F.log_softmax(logit_values, dim=1) # TODO: why take log? vanishing numbers/gradients?
+        #print(log_values)
         negative_log_values = -1 * log_values
         loss = negative_log_values * catagorical_targets
         # TODO: why is there a mean here?
+        #print(loss)
         sample_loss = torch.mean(loss, dim=1)
+        #print(sample_loss)
         if sample_weights is not None:
             sample_loss = sample_loss * sample_weights
         return sample_loss.mean()
 
 
-#loss_fn = entropic_openset_loss()
-loss_fn = nn.CrossEntropyLoss()
+loss_fn = entropic_openset_loss()
+#loss_fn = nn.CrossEntropyLoss()
 # loss_fn = nn.Softmax()
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 featurearray = np.array([])
@@ -149,7 +155,7 @@ def train(dataloader, model, loss_fn, optimizer):
     size = len(dataloader.dataset)
     features = []
     # enumerates the image in greyscale value (X) with the true label (y) in lists that are as long as the batchsize
-    # ( 0 (batchnumber) , tensor([.. grayscale values ..]) , tensor([.. labels ..]) )  <-- for batchsize=1
+    # ( 0 (batchnumber) , ( tensor([.. grayscale values ..]) , tensor([.. labels ..]) )  )  <-- for batchsize=1
     for batch, (X, y) in enumerate(dataloader):
 
         # print(list(enumerate(dataloader))[1]) #prints a batch
@@ -196,7 +202,6 @@ for t in range(epochs):
     features = train(train_dataloader, model, loss_fn, optimizer)
     test(test_dataloader, model)
 
-    print(len(features))
     plt.scatter(*zip(*features))
     plt.show()
 
