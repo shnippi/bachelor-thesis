@@ -59,7 +59,7 @@ class LeNet_plus_plus(nn.Module):
     def __init__(self):
         super(LeNet_plus_plus, self).__init__()
 
-        #list for featurerepresentation
+        # list for featurerepresentation
         self.featurerepr = []
 
         # first convolution block
