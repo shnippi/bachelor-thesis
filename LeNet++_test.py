@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import pytorch_lightning as pl
 from torch.nn import functional as F
 import numpy as np
+from itertools import chain
 
 # Get cpu or gpu device for training.
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -32,7 +33,7 @@ test_data = datasets.MNIST(
 
 # Hyperparameters
 batch_size = 64
-epochs = 1
+epochs = 10
 learning_rate = 1e-3
 
 # only taking split
@@ -58,7 +59,8 @@ class LeNet_plus_plus(nn.Module):
     def __init__(self):
         super(LeNet_plus_plus, self).__init__()
 
-        self.featurerepr = None
+        #list for featurerepresentation
+        self.featurerepr = []
 
         # first convolution block
         self.conv1_1 = nn.Conv2d(in_channels=1, out_channels=32, kernel_size=(5, 5), stride=1, padding=2)
@@ -85,7 +87,7 @@ class LeNet_plus_plus(nn.Module):
         # activation function
         self.prelu_act = nn.PReLU()
 
-    def forward(self, x, feature = False):
+    def forward(self, x):
         # compute first convolution block output
         x = self.prelu_act(self.pool(self.batch_norm1(self.conv1_2(self.conv1_1(x)))))
         # compute second convolution block output
@@ -132,7 +134,7 @@ class entropic_openset_loss():
         return sample_loss.mean()
 
 
-# loss_fn = entropic_openset_loss()
+#loss_fn = entropic_openset_loss()
 loss_fn = nn.CrossEntropyLoss()
 # loss_fn = nn.Softmax()
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
@@ -141,6 +143,7 @@ featurearray = np.array([])
 
 def train(dataloader, model, loss_fn, optimizer):
     size = len(dataloader.dataset)
+    features = []
     # enumerates the image in greyscale value (X) with the true label (y) in lists that are as long as the batchsize
     # ( 0 (batchnumber) , tensor([.. grayscale values ..]) , tensor([.. labels ..]) )  <-- for batchsize=1
     for batch, (X, y) in enumerate(dataloader):
@@ -150,6 +153,7 @@ def train(dataloader, model, loss_fn, optimizer):
 
         # Compute prediction error
         pred = model(X)
+        features.append(model.featurerepr.to("cpu").detach().tolist())
 
         # print(pred)
         # print(y)
@@ -164,6 +168,8 @@ def train(dataloader, model, loss_fn, optimizer):
         if batch % 100 == 0:
             loss, current = loss.item(), batch * len(X)
             print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
+
+    return list(chain.from_iterable(features))
 
 
 def test(dataloader, model):
@@ -183,14 +189,11 @@ def test(dataloader, model):
 
 for t in range(epochs):
     print(f"Epoch {t + 1}\n-------------------------------")
-    train(train_dataloader, model, loss_fn, optimizer)
+    features = train(train_dataloader, model, loss_fn, optimizer)
     test(test_dataloader, model)
+
+    print(len(features))
+    plt.scatter(*zip(*features))
+    plt.show()
+
 print("Done!")
-
-
-features = model.featurerepr
-features = features.to("cpu")
-features = features.numpy()
-print(features)
-plt.plot(features, "ro")
-plt.show()
