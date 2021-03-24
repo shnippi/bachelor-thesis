@@ -2,7 +2,7 @@ from itertools import product
 
 import torch
 from torch import nn
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader, random_split, Subset
 from torchvision import datasets
 from torchvision.transforms import ToTensor, Lambda, Compose
 import matplotlib.pyplot as plt
@@ -14,6 +14,15 @@ from itertools import chain
 # Get cpu or gpu device for training.
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print("Using {} device".format(device))
+
+
+# Hyperparameters
+batch_size = 64 if torch.cuda.is_available() else 20
+epochs = 1
+learning_rate = 1e-3
+
+
+# smaller datasets if no GPU available
 
 # Download training data from open datasets.
 training_data = datasets.MNIST(
@@ -31,17 +40,12 @@ test_data = datasets.MNIST(
     transform=ToTensor(),
 )
 
-# Hyperparameters
-batch_size = 64
-epochs = 10
-learning_rate = 1e-3
-
-# only taking split
-# train_data = datasets.MNIST('data', train=True, download=True, transform=ToTensor())
-# train, val = random_split(train_data, [55000, 5000])
-# train_dataloader = DataLoader(train, batch_size=32)
-# test_dataloader = DataLoader(val, batch_size=32)
-
+# take subset of training set if no GPU available
+if device == "cpu":
+    subtrain = list(range(1, 5001))
+    subtest = list(range(1, 1001))
+    training_data = Subset(training_data,subtrain)
+    test_data = Subset(test_data,subtest)
 
 # Create data loaders.
 train_dataloader = DataLoader(training_data, batch_size=batch_size)
