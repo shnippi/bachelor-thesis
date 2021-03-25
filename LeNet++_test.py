@@ -17,7 +17,7 @@ print("Using {} device".format(device))
 
 # Hyperparameters
 batch_size = 64 if torch.cuda.is_available() else 5
-epochs = 5 if torch.cuda.is_available() else 1
+epochs = 10 if torch.cuda.is_available() else 1
 learning_rate = 1e-3
 
 # smaller datasets if no GPU available
@@ -135,17 +135,18 @@ class entropic_openset_loss():
         # print(log_values)
         negative_log_values = -1 * log_values
         loss = negative_log_values * catagorical_targets
+        #print(loss)
         # TODO: why is there a mean here?
-        # print(loss)
-        sample_loss = torch.mean(loss, dim=1)
-        # print(sample_loss)
+        #sample_loss = torch.mean(loss, dim=1)
+        sample_loss = torch.max(loss, dim=1).values
+        #print(sample_loss)
         if sample_weights is not None:
             sample_loss = sample_loss * sample_weights
         return sample_loss.mean()
 
 
-# loss_fn = entropic_openset_loss()
-loss_fn = nn.CrossEntropyLoss()
+loss_fn = entropic_openset_loss()
+# loss_fn = nn.CrossEntropyLoss()
 # loss_fn = nn.Softmax()
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 featurearray = np.array([])
