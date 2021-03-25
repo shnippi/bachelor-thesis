@@ -15,12 +15,10 @@ from itertools import chain
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print("Using {} device".format(device))
 
-
 # Hyperparameters
 batch_size = 64 if torch.cuda.is_available() else 5
-epochs = 1
+epochs = 5 if torch.cuda.is_available() else 1
 learning_rate = 1e-3
-
 
 # smaller datasets if no GPU available
 
@@ -44,8 +42,8 @@ test_data = datasets.MNIST(
 if device == "cpu":
     subtrain = list(range(1, 5001))
     subtest = list(range(1, 1001))
-    training_data = Subset(training_data,subtrain)
-    test_data = Subset(test_data,subtest)
+    training_data = Subset(training_data, subtrain)
+    test_data = Subset(test_data, subtest)
 
 # Create data loaders.
 train_dataloader = DataLoader(training_data, batch_size=batch_size)
@@ -118,34 +116,36 @@ class entropic_openset_loss():
         self.ones = torch.ones(self.num_of_classes).to(device)
         self.unknowns_multiplier = 1. / self.num_of_classes
 
-    def __call__(self, logit_values, target, sample_weights=None): # logit_values --> tensor with #batchsize#
+    def __call__(self, logit_values, target, sample_weights=None):  # logit_values --> tensor with #batchsize#
         # samples, per sample 10 values with the respective logits for each class.
         # target f.e. tensor([0, 4, 1, 9, 2]) with len = batchsize
 
-        catagorical_targets = torch.zeros(logit_values.shape).to(device)# tensor with size (batchsize, #classes), all logits to 0
+        catagorical_targets = torch.zeros(logit_values.shape).to(
+            device)  # tensor with size (batchsize, #classes), all logits to 0
         known_indexes = target != -1  # list of bools for the known indexes
         unknown_indexes = ~known_indexes  # list of bools for the unknown indexes
-        catagorical_targets[known_indexes, :] = self.eye[target[known_indexes]]#puts the logits to 1 at the correct index for each sample
-        #print(catagorical_targets)
+        catagorical_targets[known_indexes, :] = self.eye[
+            target[known_indexes]]  # puts the logits to 1 at the correct index for each sample
+        # print(catagorical_targets)
         catagorical_targets[unknown_indexes, :] = self.ones.expand(
             (torch.sum(unknown_indexes).item(), self.num_of_classes)) * self.unknowns_multiplier
-        #print(catagorical_targets)
+        # print(catagorical_targets)
 
-        log_values = F.log_softmax(logit_values, dim=1) # TODO: why take log? vanishing numbers/gradients?
-        #print(log_values)
+        log_values = F.log_softmax(logit_values, dim=1)  # TODO: why take log? vanishing numbers/gradients?
+        # print(log_values)
         negative_log_values = -1 * log_values
         loss = negative_log_values * catagorical_targets
         # TODO: why is there a mean here?
-        #print(loss)
+        # print(loss)
         sample_loss = torch.mean(loss, dim=1)
-        #print(sample_loss)
+        # print(sample_loss)
         if sample_weights is not None:
             sample_loss = sample_loss * sample_weights
         return sample_loss.mean()
 
 
-loss_fn = entropic_openset_loss()
-#loss_fn = nn.CrossEntropyLoss()
+# loss_fn = entropic_openset_loss()
+loss_fn = nn.CrossEntropyLoss()
 # loss_fn = nn.Softmax()
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 featurearray = np.array([])
@@ -153,7 +153,9 @@ featurearray = np.array([])
 
 def train(dataloader, model, loss_fn, optimizer):
     size = len(dataloader.dataset)
-    features = []
+
+    # one nested list for each feature
+    features = [[], [], [], [], [], [], [], [], [], []]
     # enumerates the image in greyscale value (X) with the true label (y) in lists that are as long as the batchsize
     # ( 0 (batchnumber) , ( tensor([.. grayscale values ..]) , tensor([.. labels ..]) )  )  <-- for batchsize=1
     for batch, (X, y) in enumerate(dataloader):
@@ -163,10 +165,17 @@ def train(dataloader, model, loss_fn, optimizer):
 
         # Compute prediction error
         pred = model(X)
-        features.append(model.featurerepr.to("cpu").detach().tolist())
+        ylist = y.to("cpu").detach().tolist()
+        xlist = X.to("cpu").detach().tolist()
+
+        # put the 2dfeatures in the correct sublist according to their true label
+        for i in range(len(y) - 1):
+            features[ylist[i]].append(model.featurerepr.to("cpu").detach().tolist()[i])
 
         # print(pred)
         # print(y)
+        # print(model.featurerepr)
+        # print(features)
 
         loss = loss_fn(pred, y)
 
@@ -179,7 +188,7 @@ def train(dataloader, model, loss_fn, optimizer):
             loss, current = loss.item(), batch * len(X)
             print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
 
-    return list(chain.from_iterable(features))
+    return features
 
 
 def test(dataloader, model):
@@ -202,7 +211,12 @@ for t in range(epochs):
     features = train(train_dataloader, model, loss_fn, optimizer)
     test(test_dataloader, model)
 
-    plt.scatter(*zip(*features))
+    colors = ["b", "g", "r", "c", "m", "y", "k", "lawngreen", "peru", "deeppink"]
+
+    # scatterplot every digit to a color
+    for i in range(10):
+        plt.scatter(*zip(*(features[i])), c=colors[i])
+
     plt.show()
 
 print("Done!")
