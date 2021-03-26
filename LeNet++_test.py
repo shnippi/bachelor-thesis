@@ -10,14 +10,14 @@ import pytorch_lightning as pl
 from torch.nn import functional as F
 import numpy as np
 from itertools import chain
-
+from viz import *
 # Get cpu or gpu device for training.
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print("Using {} device".format(device))
 
 # Hyperparameters
 batch_size = 64 if torch.cuda.is_available() else 5
-epochs = 10 if torch.cuda.is_available() else 1
+epochs = 30 if torch.cuda.is_available() else 1
 learning_rate = 1e-3
 
 # smaller datasets if no GPU available
@@ -131,7 +131,7 @@ class entropic_openset_loss():
             (torch.sum(unknown_indexes).item(), self.num_of_classes)) * self.unknowns_multiplier
         # print(catagorical_targets)
 
-        log_values = F.log_softmax(logit_values, dim=1)  # TODO: why take log? vanishing numbers/gradients?
+        log_values = F.log_softmax(logit_values, dim=1)  # EOS --> -log(Softmax(x))
         # print(log_values)
         negative_log_values = -1 * log_values
         loss = negative_log_values * catagorical_targets
@@ -212,12 +212,6 @@ for t in range(epochs):
     features = train(train_dataloader, model, loss_fn, optimizer)
     test(test_dataloader, model)
 
-    colors = ["b", "g", "r", "c", "m", "y", "k", "lawngreen", "peru", "deeppink"]
-
-    # scatterplot every digit to a color
-    for i in range(10):
-        plt.scatter(*zip(*(features[i])), c=colors[i])
-
-    plt.show()
+    simplescatter(features)
 
 print("Done!")
