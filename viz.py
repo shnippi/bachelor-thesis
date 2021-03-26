@@ -30,7 +30,7 @@ colors = np.array([
 colors = colors / 255.
 
 
-def simplescatter(features,c = ("b", "g", "r", "c", "m", "y", "k", "lawngreen", "peru", "deeppink"),s = 5):
+def simplescatter(features,c = ("b", "g", "r", "c", "m", "y", "k", "lawngreen", "peru", "deeppink"),s = 1):
 
     # scatterplot every digit to a color
     for i in range(10):

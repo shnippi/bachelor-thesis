@@ -155,8 +155,9 @@ featurearray = np.array([])
 def train(dataloader, model, loss_fn, optimizer):
     size = len(dataloader.dataset)
 
-    # one nested list for each feature
+    # one nested list for each digit
     features = [[], [], [], [], [], [], [], [], [], []]
+
     # enumerates the image in greyscale value (X) with the true label (y) in lists that are as long as the batchsize
     # ( 0 (batchnumber) , ( tensor([.. grayscale values ..]) , tensor([.. labels ..]) )  )  <-- for batchsize=1
     for batch, (X, y) in enumerate(dataloader):
@@ -167,9 +168,8 @@ def train(dataloader, model, loss_fn, optimizer):
         # Compute prediction error
         pred = model(X)
         ylist = y.to("cpu").detach().tolist()
-        xlist = X.to("cpu").detach().tolist()
 
-        # put the 2dfeatures in the correct sublist according to their true label
+        # for every prediction put the 2dfeatures in the correct sublist according to their true label(index)
         for i in range(len(y) - 1):
             features[ylist[i]].append(model.featurerepr.to("cpu").detach().tolist()[i])
 
@@ -211,6 +211,7 @@ for t in range(epochs):
     print(f"Epoch {t + 1}\n-------------------------------")
     features = train(train_dataloader, model, loss_fn, optimizer)
     test(test_dataloader, model)
+
 
     simplescatter(features)
 
