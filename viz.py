@@ -30,11 +30,12 @@ colors = np.array([
 colors = colors / 255.
 
 
-def simplescatter(features,c = ("b", "g", "r", "c", "m", "y", "k", "lawngreen", "peru", "deeppink"),s = 1):
-
+def simplescatter(features, c=("b", "g", "r", "c", "m", "y", "k", "lawngreen", "peru", "deeppink"), s=0.1, classes=10):
     # scatterplot every digit to a color
-    for i in range(10):
-        plt.scatter(*zip(*(features[i])), c=c[i], s = s)
+    for i in range(classes):
+        plt.scatter(*zip(*(features[i])), c=c[i], s=s)
+
+    plt.legend(range(classes))
 
     plt.show()
 
@@ -120,24 +121,20 @@ def plotter_2D(
     plt.show()
     if neg_features is not None:
         plot_histogram(pos_features, neg_features, pos_labels=pos_labels, neg_labels=neg_labels, title=title,
-                       file_name=file_name.format('hist','pdf'))
-
-
-
-
+                       file_name=file_name.format('hist', 'pdf'))
 
 
 def sigmoid_2D_plotter(
-                        pos_features,
-                        labels,
-                        neg_features=None,
-                        pos_labels='Knowns',
-                        neg_labels='Unknowns',
-                        title=None,
-                        file_name='foo.pdf',
-                        final=False,
-                        pred_weights=None,
-                        heat_map=False):
+        pos_features,
+        labels,
+        neg_features=None,
+        pos_labels='Knowns',
+        neg_labels='Unknowns',
+        title=None,
+        file_name='foo.pdf',
+        final=False,
+        pred_weights=None,
+        heat_map=False):
     global colors
     plt.figure(figsize=[6, 6])
 
@@ -161,7 +158,8 @@ def sigmoid_2D_plotter(
 
     colors_with_repetition = colors.tolist()
     for i in range(10):
-        plt.scatter(pos_features[labels==i, 0], pos_features[labels==i, 1], c=colors_with_repetition[i], edgecolors='none', s=1.-(i/10))
+        plt.scatter(pos_features[labels == i, 0], pos_features[labels == i, 1], c=colors_with_repetition[i],
+                    edgecolors='none', s=1. - (i / 10))
     if neg_features is not None:
         plt.scatter(neg_features[:, 0], neg_features[:, 1], c='k', edgecolors='none', s=15, marker="*")
     if final:
@@ -177,8 +175,7 @@ def sigmoid_2D_plotter(
     plt.show()
     if neg_features is not None:
         plot_histogram(pos_features, neg_features, pos_labels=pos_labels, neg_labels=neg_labels, title=title,
-                       file_name=file_name.format('hist','pdf'))
-
+                       file_name=file_name.format('hist', 'pdf'))
 
 
 def plot_OSRC(to_plot, no_of_false_positives=None, filename=None, title=None):
@@ -191,7 +188,7 @@ def plot_OSRC(to_plot, no_of_false_positives=None, filename=None, title=None):
     fig, ax = plt.subplots()
     if title != None:
         fig.suptitle(title, fontsize=20)
-    for plot_no, (knowns_accuracy,OSE,label_name) in enumerate(to_plot):
+    for plot_no, (knowns_accuracy, OSE, label_name) in enumerate(to_plot):
         ax.plot(OSE, knowns_accuracy, label=label_name)
     ax.set_xscale('log')
     ax.autoscale(enable=True, axis='x', tight=True)

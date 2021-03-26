@@ -11,6 +11,7 @@ from torch.nn import functional as F
 import numpy as np
 from itertools import chain
 from viz import *
+
 # Get cpu or gpu device for training.
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print("Using {} device".format(device))
@@ -135,11 +136,11 @@ class entropic_openset_loss():
         # print(log_values)
         negative_log_values = -1 * log_values
         loss = negative_log_values * catagorical_targets
-        #print(loss)
+        # print(loss)
         # TODO: why is there a mean here?
-        #sample_loss = torch.mean(loss, dim=1)
+        # sample_loss = torch.mean(loss, dim=1)
         sample_loss = torch.max(loss, dim=1).values
-        #print(sample_loss)
+        # print(sample_loss)
         if sample_weights is not None:
             sample_loss = sample_loss * sample_weights
         return sample_loss.mean()
@@ -180,6 +181,8 @@ def train(dataloader, model, loss_fn, optimizer):
 
         loss = loss_fn(pred, y)
 
+        # print(loss)
+
         # Backpropagation
         optimizer.zero_grad()
         loss.backward()
@@ -207,12 +210,12 @@ def test(dataloader, model):
     print(f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
 
 
-for t in range(epochs):
-    print(f"Epoch {t + 1}\n-------------------------------")
-    features = train(train_dataloader, model, loss_fn, optimizer)
-    test(test_dataloader, model)
+if __name__ == '__main__':
+    for t in range(epochs):
+        print(f"Epoch {t + 1}\n-------------------------------")
+        features = train(train_dataloader, model, loss_fn, optimizer)
+        test(test_dataloader, model)
 
+        simplescatter(features)
 
-    simplescatter(features)
-
-print("Done!")
+    print("Done!")
