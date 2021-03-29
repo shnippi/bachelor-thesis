@@ -19,7 +19,7 @@ print("Using {} device".format(device))
 # Hyperparameters
 batch_size = 64 if torch.cuda.is_available() else 5
 epochs = 30 if torch.cuda.is_available() else 1
-learning_rate = 1e-2
+learning_rate = 1e-3
 
 # smaller datasets if no GPU available
 
@@ -64,9 +64,6 @@ class LeNet_plus_plus(nn.Module):
     def __init__(self):
         super(LeNet_plus_plus, self).__init__()
 
-        # list for featurerepresentation
-        self.featurerepr = []
-
         # first convolution block
         self.conv1_1 = nn.Conv2d(in_channels=1, out_channels=32, kernel_size=(5, 5), stride=1, padding=2)
         self.conv1_2 = nn.Conv2d(in_channels=self.conv1_1.out_channels, out_channels=32, kernel_size=(5, 5), stride=1,
@@ -99,14 +96,14 @@ class LeNet_plus_plus(nn.Module):
         x = self.prelu_act(self.pool(self.batch_norm2(self.conv2_2(self.conv2_1(x)))))
         # compute third convolution block output
         x = self.prelu_act(self.pool(self.batch_norm3(self.conv3_2(self.conv3_1(x)))))
-        # flattens it --> turn into 1D representation (1D per batch element)
+        # turn into 1D representation (1D per batch element)
         x = x.view(-1, self.conv3_2.out_channels * 3 * 3)
-        # first fully-connected layer to compute 2D feature space. THIS IS THE 2D FEATURE VECTOR SPACE
-        self.featurerepr = self.fc1(x)
+        # first fully-connected layer to compute 2D feature space
+        z = self.fc1(x)
         # second fully-connected layer to compute the logits
-        y = self.fc2(self.featurerepr)
-        # return both the logits and the deep features. THIS IS THE PREDICTION
-        return y
+        y = self.fc2(z)
+        # return both the logits and the deep features
+        return y, z
 
 
 model = LeNet_plus_plus().to(device)
@@ -119,8 +116,8 @@ class entropic_openset_loss():
         self.ones = torch.ones(self.num_of_classes).to(device)
         self.unknowns_multiplier = 1. / self.num_of_classes
 
-    def __call__(self, logit_values, target, sample_weights=None):  # logit_values --> tensor with #batchsize#
-        # samples, per sample 10 values with the respective logits for each class.
+    def __call__(self, logit_values, target, sample_weights=None):
+        # logit_values --> tensor with #batchsize samples, per sample 10 values with logits for each class.
         # target f.e. tensor([0, 4, 1, 9, 2]) with len = batchsize
 
         # print(logit_values)
@@ -139,7 +136,6 @@ class entropic_openset_loss():
         log_values = F.log_softmax(logit_values, dim=1)  # EOS --> -log(Softmax(x))
         negative_log_values = -1 * log_values
         loss = negative_log_values * catagorical_targets
-        # print(loss)
         # why is there a mean here? --> doesnt matter, leave it. just pump up learning rate
         sample_loss = torch.mean(loss, dim=1)
         # print(sample_loss)
@@ -148,8 +144,8 @@ class entropic_openset_loss():
         return sample_loss.mean()
 
 
-loss_fn = entropic_openset_loss()
-# loss_fn = nn.CrossEntropyLoss()
+# loss_fn = entropic_openset_loss()
+loss_fn = nn.CrossEntropyLoss()
 # loss_fn = nn.Softmax()
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 featurearray = np.array([])
@@ -157,9 +153,6 @@ featurearray = np.array([])
 
 def train(dataloader, model, loss_fn, optimizer):
     size = len(dataloader.dataset)
-
-    # one nested list for each digit
-    features = [[], [], [], [], [], [], [], [], [], []]
 
     # enumerates the image in greyscale value (X) with the true label (y) in lists that are as long as the batchsize
     # ( 0 (batchnumber) , ( tensor([.. grayscale values ..]) , tensor([.. labels ..]) )  )  <-- for batchsize=1
@@ -169,12 +162,12 @@ def train(dataloader, model, loss_fn, optimizer):
         X, y = X.to(device), y.to(device)
 
         # Compute prediction error TODO:here 2 return values when forward has 2 return values
-        pred = model(X)
-        ylist = y.to("cpu").detach().tolist()
+        pred , feat = model(X)
+        # ylist = y.to("cpu").detach().tolist()
 
         # for every prediction put the 2dfeatures in the correct sublist according to their true label(index)
-        for i in range(len(y) - 1):
-            features[ylist[i]].append(model.featurerepr.to("cpu").detach().tolist()[i])
+        # for i in range(len(y) - 1):
+        #     features[ylist[i]].append(model.featurerepr.to("cpu").detach().tolist()[i])
 
         # print(pred)
         # print(y)
@@ -194,19 +187,31 @@ def train(dataloader, model, loss_fn, optimizer):
             loss, current = loss.item(), batch * len(X)
             print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
 
-    return features
-
 
 def test(dataloader, model):
+    # one nested list for each digit
+    features = [[], [], [], [], [], [], [], [], [], []]
+
     size = len(dataloader.dataset)
+    print(size)
     model.eval()
     test_loss, correct = 0, 0
     with torch.no_grad():  # dont need the backward prop
+        #iterating over every batch
         for X, y in dataloader:
             X, y = X.to(device), y.to(device)
-            pred = model(X)
+            pred, feat = model(X)
             test_loss += loss_fn(pred, y).item()
             correct += (pred.argmax(1) == y).type(torch.float).sum().item()
+
+            ylist = y.to("cpu").detach().tolist()
+
+            # for every prediction put the 2dfeatures in the correct sublist according to their true label(index)
+            for i in range(len(y) - 1):
+                features[ylist[i]].append(feat.to("cpu").detach().tolist()[i])
+
+    simplescatter(features)
+
     test_loss /= size
     correct /= size
     print(f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
@@ -215,9 +220,7 @@ def test(dataloader, model):
 if __name__ == '__main__':
     for t in range(epochs):
         print(f"Epoch {t + 1}\n-------------------------------")
-        features = train(train_dataloader, model, loss_fn, optimizer)
+        train(train_dataloader, model, loss_fn, optimizer)
         test(test_dataloader, model)
-
-        simplescatter(features)
 
     print("Done!")
