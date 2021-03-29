@@ -19,13 +19,14 @@ print("Using {} device".format(device))
 # Hyperparameters
 batch_size = 64 if torch.cuda.is_available() else 5
 epochs = 30 if torch.cuda.is_available() else 1
-learning_rate = 1e-3
+learning_rate = 1e-2
 
 # smaller datasets if no GPU available
 
 # Download training data from open datasets.
 training_data = datasets.MNIST(
     root="data",
+    #split="digits",
     train=True,
     download=True,
     transform=ToTensor(),
@@ -34,6 +35,7 @@ training_data = datasets.MNIST(
 # Download test data from open datasets.
 test_data = datasets.MNIST(
     root="data",
+    #split="digits",
     train=False,
     download=True,
     transform=ToTensor(),
@@ -121,25 +123,25 @@ class entropic_openset_loss():
         # samples, per sample 10 values with the respective logits for each class.
         # target f.e. tensor([0, 4, 1, 9, 2]) with len = batchsize
 
+        # print(logit_values)
+
         catagorical_targets = torch.zeros(logit_values.shape).to(
             device)  # tensor with size (batchsize, #classes), all logits to 0
-        known_indexes = target != -1  # list of bools for the known indexes
-        unknown_indexes = ~known_indexes  # list of bools for the unknown indexes
+        known_indexes = target != -1  # list of bools for the known classes
+        unknown_indexes = ~known_indexes  # list of bools for the unknown classes
         catagorical_targets[known_indexes, :] = self.eye[
-            target[known_indexes]]  # puts the logits to 1 at the correct index for each sample
+            target[known_indexes]]  # puts the logits to 1 at the correct index (class) for each sample
         # print(catagorical_targets)
         catagorical_targets[unknown_indexes, :] = self.ones.expand(
             (torch.sum(unknown_indexes).item(), self.num_of_classes)) * self.unknowns_multiplier
         # print(catagorical_targets)
 
         log_values = F.log_softmax(logit_values, dim=1)  # EOS --> -log(Softmax(x))
-        # print(log_values)
         negative_log_values = -1 * log_values
         loss = negative_log_values * catagorical_targets
         # print(loss)
-        # TODO: why is there a mean here?
-        # sample_loss = torch.mean(loss, dim=1)
-        sample_loss = torch.max(loss, dim=1).values
+        # why is there a mean here? --> doesnt matter, leave it. just pump up learning rate
+        sample_loss = torch.mean(loss, dim=1)
         # print(sample_loss)
         if sample_weights is not None:
             sample_loss = sample_loss * sample_weights
@@ -166,7 +168,7 @@ def train(dataloader, model, loss_fn, optimizer):
         # print(list(enumerate(dataloader))[1]) #prints a batch
         X, y = X.to(device), y.to(device)
 
-        # Compute prediction error
+        # Compute prediction error TODO:here 2 return values when forward has 2 return values
         pred = model(X)
         ylist = y.to("cpu").detach().tolist()
 
