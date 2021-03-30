@@ -1,6 +1,7 @@
 import torch
 import bisect
 
+
 class ConcatDataset(torch.utils.data.dataset.Dataset):
     """
     Used to concatenate multiple datasets into one.
@@ -21,18 +22,19 @@ class ConcatDataset(torch.utils.data.dataset.Dataset):
         torch.tensor(-1) in place of -1
         or vice versa
     """
+
     @staticmethod
     def cumsum(sequence):
         r, s = [], 0
-        all_sizes=[]
+        all_sizes = []
         for e in sequence:
             l = len(e)
             r.append(l + s)
             s += l
-            print (e)
-            print (len(e),s)
-            print (r[-1])
-            print ("###")
+            print(e)
+            print(len(e), s)
+            print(r[-1])
+            print("###")
             all_sizes.append(len(e))
         return r, all_sizes
 
@@ -54,16 +56,16 @@ class ConcatDataset(torch.utils.data.dataset.Dataset):
         dataset_idx = bisect.bisect_right(self.cumulative_sizes, idx)
         if dataset_idx == 0:
             sample_idx = idx
-            to_return=self.datasets[dataset_idx][sample_idx]
+            to_return = self.datasets[dataset_idx][sample_idx]
         elif dataset_idx == 1:
             if self.BG:
                 sample_idx = idx - self.cumulative_sizes[dataset_idx - 1]
-                to_return = (self.datasets[dataset_idx][sample_idx][0],10)
+                to_return = (self.datasets[dataset_idx][sample_idx][0], 10)
             else:
-                #labels the samples from the second dataset with -1
+                # labels the samples from the second dataset with -1
                 sample_idx = idx - self.cumulative_sizes[dataset_idx - 1]
-                to_return = (self.datasets[dataset_idx][sample_idx][0],-1)
+                to_return = (self.datasets[dataset_idx][sample_idx][0], -1)
         elif dataset_idx == 2:
             sample_idx = idx - self.cumulative_sizes[dataset_idx - 1]
-            to_return = (self.datasets[dataset_idx][sample_idx][0],torch.tensor(-2))
+            to_return = (self.datasets[dataset_idx][sample_idx][0], torch.tensor(-2))
         return to_return
