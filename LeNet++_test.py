@@ -19,14 +19,14 @@ print("Using {} device".format(device))
 # Hyperparameters
 batch_size = 64 if torch.cuda.is_available() else 5
 epochs = 30 if torch.cuda.is_available() else 1
-learning_rate = 1e-3
+learning_rate = 1e-3 * 5
 
 # smaller datasets if no GPU available
 
 # Download training data from open datasets.
 training_data = datasets.MNIST(
     root="data",
-    #split="digits",
+    # split="digits",
     train=True,
     download=True,
     transform=ToTensor(),
@@ -35,7 +35,7 @@ training_data = datasets.MNIST(
 # Download test data from open datasets.
 test_data = datasets.MNIST(
     root="data",
-    #split="digits",
+    # split="digits",
     train=False,
     download=True,
     transform=ToTensor(),
@@ -63,7 +63,6 @@ for X, y in test_dataloader:
 class LeNet_plus_plus(nn.Module):
     def __init__(self):
         super(LeNet_plus_plus, self).__init__()
-
         # first convolution block
         self.conv1_1 = nn.Conv2d(in_channels=1, out_channels=32, kernel_size=(5, 5), stride=1, padding=2)
         self.conv1_2 = nn.Conv2d(in_channels=self.conv1_1.out_channels, out_channels=32, kernel_size=(5, 5), stride=1,
@@ -138,17 +137,17 @@ class entropic_openset_loss():
         loss = negative_log_values * catagorical_targets
         # why is there a mean here? --> doesnt matter, leave it. just pump up learning rate
         sample_loss = torch.mean(loss, dim=1)
+        # sample_loss = torch.max(loss, dim=1).values
         # print(sample_loss)
         if sample_weights is not None:
             sample_loss = sample_loss * sample_weights
         return sample_loss.mean()
 
 
-# loss_fn = entropic_openset_loss()
-loss_fn = nn.CrossEntropyLoss()
+loss_fn = entropic_openset_loss()
+# loss_fn = nn.CrossEntropyLoss()
 # loss_fn = nn.Softmax()
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
-featurearray = np.array([])
 
 
 def train(dataloader, model, loss_fn, optimizer):
@@ -161,18 +160,8 @@ def train(dataloader, model, loss_fn, optimizer):
         # print(list(enumerate(dataloader))[1]) #prints a batch
         X, y = X.to(device), y.to(device)
 
-        # Compute prediction error TODO:here 2 return values when forward has 2 return values
-        pred , feat = model(X)
-        # ylist = y.to("cpu").detach().tolist()
-
-        # for every prediction put the 2dfeatures in the correct sublist according to their true label(index)
-        # for i in range(len(y) - 1):
-        #     features[ylist[i]].append(model.featurerepr.to("cpu").detach().tolist()[i])
-
-        # print(pred)
-        # print(y)
-        # print(model.featurerepr)
-        # print(features)
+        # implicitely calles forward
+        pred, feat = model(X)
 
         loss = loss_fn(pred, y)
 
@@ -197,7 +186,7 @@ def test(dataloader, model):
     model.eval()
     test_loss, correct = 0, 0
     with torch.no_grad():  # dont need the backward prop
-        #iterating over every batch
+        # iterating over every batch
         for X, y in dataloader:
             X, y = X.to(device), y.to(device)
             pred, feat = model(X)
