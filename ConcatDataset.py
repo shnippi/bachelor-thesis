@@ -60,6 +60,7 @@ class ConcatDataset(torch.utils.data.dataset.Dataset):
                 sample_idx = idx - self.cumulative_sizes[dataset_idx - 1]
                 to_return = (self.datasets[dataset_idx][sample_idx][0],10)
             else:
+                #labels the samples from the second dataset with -1
                 sample_idx = idx - self.cumulative_sizes[dataset_idx - 1]
                 to_return = (self.datasets[dataset_idx][sample_idx][0],-1)
         elif dataset_idx == 2:

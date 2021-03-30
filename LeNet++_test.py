@@ -1,5 +1,3 @@
-from itertools import product
-
 import torch
 from torch import nn
 from torch.utils.data import DataLoader, random_split, Subset
@@ -11,20 +9,38 @@ from torch.nn import functional as F
 import numpy as np
 from itertools import chain
 from viz import *
+from ConcatDataset import ConcatDataset
 
 # Get cpu or gpu device for training.
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print("Using {} device".format(device))
 
 # Hyperparameters
-batch_size = 64 if torch.cuda.is_available() else 5
+batch_size = 4 if torch.cuda.is_available() else 5
 epochs = 30 if torch.cuda.is_available() else 1
 learning_rate = 1e-3 * 5
 
-# smaller datasets if no GPU available
+
 
 # Download training data from open datasets.
-training_data = datasets.EMNIST(
+letters_train = datasets.EMNIST(
+    root="data",
+    split="letters",
+    train=True,
+    download=True,
+    transform=ToTensor(),
+)
+
+# Download test data from open datasets.
+letters_test = datasets.EMNIST(
+    root="data",
+    split="letters",
+    train=False,
+    download=True,
+    transform=ToTensor(),
+)
+
+digits_train = datasets.EMNIST(
     root="data",
     split="digits",
     train=True,
@@ -32,14 +48,25 @@ training_data = datasets.EMNIST(
     transform=ToTensor(),
 )
 
-# Download test data from open datasets.
-test_data = datasets.EMNIST(
+digits_test = datasets.EMNIST(
     root="data",
     split="digits",
     train=False,
     download=True,
     transform=ToTensor(),
 )
+
+# training_data = letters_train
+# test_data = letters_test
+
+training_data = ConcatDataset([digits_train, letters_train])
+test_data = ConcatDataset([digits_test, letters_test])
+
+subtrain = list(range(1, len(training_data) + 1, int((len(training_data) + 1) / 40000)))
+subtest = list(range(1, len(test_data) + 1, int((len(test_data) + 1) / 10000)))
+
+training_data = Subset(training_data, subtrain)
+test_data = Subset(test_data, subtest)
 
 # take subset of training set if no GPU available
 if device == "cpu":
@@ -51,6 +78,10 @@ if device == "cpu":
 # Create data loaders.
 train_dataloader = DataLoader(training_data, batch_size=batch_size)
 test_dataloader = DataLoader(test_data, batch_size=batch_size)
+
+x,y = list(test_dataloader)[len(test_dataloader) -1]
+print(x)
+print(y)
 
 # see what dimensions the input is
 for X, y in test_dataloader:
