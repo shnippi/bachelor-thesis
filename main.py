@@ -23,7 +23,7 @@ print("Using {} device".format(device))
 batch_size = 64 if torch.cuda.is_available() else 5
 epochs = 30 if torch.cuda.is_available() else 1
 learning_rate = 1e-3 * 5
-trainsamples = 40000
+trainsamples = 60000
 testsamples = 10000
 
 # create Datasets
