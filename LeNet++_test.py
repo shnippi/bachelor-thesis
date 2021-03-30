@@ -24,18 +24,18 @@ learning_rate = 1e-3 * 5
 # smaller datasets if no GPU available
 
 # Download training data from open datasets.
-training_data = datasets.MNIST(
+training_data = datasets.EMNIST(
     root="data",
-    # split="digits",
+    split="digits",
     train=True,
     download=True,
     transform=ToTensor(),
 )
 
 # Download test data from open datasets.
-test_data = datasets.MNIST(
+test_data = datasets.EMNIST(
     root="data",
-    # split="digits",
+    split="digits",
     train=False,
     download=True,
     transform=ToTensor(),
