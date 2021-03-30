@@ -12,6 +12,8 @@ from visualization import *
 from ConcatDataset import ConcatDataset
 from HiddenPrints import HiddenPrints
 from LeNet_plus_plus import LeNet_plus_plus
+import Data_manager
+from loss import entropic_openset_loss
 
 # Get cpu or gpu device for training.
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -24,70 +26,14 @@ learning_rate = 1e-3 * 5
 trainsamples = 40000
 testsamples = 10000
 
-
-# Download training data from open datasets.
-letters_train = datasets.EMNIST(
-    root="data",
-    split="letters",
-    train=True,
-    download=True,
-    transform=ToTensor(),
-)
-
-# Download test data from open datasets.
-letters_test = datasets.EMNIST(
-    root="data",
-    split="letters",
-    train=False,
-    download=True,
-    transform=ToTensor(),
-)
-
-digits_train = datasets.EMNIST(
-    root="data",
-    split="digits",
-    train=True,
-    download=True,
-    transform=ToTensor(),
-)
-
-digits_test = datasets.EMNIST(
-    root="data",
-    split="digits",
-    train=False,
-    download=True,
-    transform=ToTensor(),
-)
-
-#no printing
-with HiddenPrints():
-    training_data = ConcatDataset([digits_train, letters_train])
-    test_data = ConcatDataset([digits_test, letters_test])
-
-training_data = digits_train
-test_data = digits_test
-
-# take different sizes of the datasets depending if GPU is available
-if device == "cpu":
-    subtrain = list(range(1, 5001))
-    subtest = list(range(1, 1001))
-    training_data = Subset(training_data, subtrain)
-    test_data = Subset(test_data, subtest)
-else:
-    subtrain = list(range(1, len(training_data) + 1, round((len(training_data) + 1) / trainsamples)))
-    subtest = list(range(1, len(test_data) + 1, round((len(test_data) + 1) / testsamples)))
-    training_data = Subset(training_data, subtrain)
-    test_data = Subset(test_data, subtest)
-
+# create Datasets
+training_data, test_data = Data_manager.Concat_digit_letter(trainsamples, testsamples, device)
+# training_data, test_data = Data_manager.mnist_vanilla(device)
 
 
 # Create data loaders.
 train_dataloader = DataLoader(training_data, batch_size=batch_size)
 test_dataloader = DataLoader(test_data, batch_size=batch_size)
-
-x,y = list(test_dataloader)[len(test_dataloader) -2]
-print(x)
-print(y)
 
 # see what dimensions the input is
 for X, y in test_dataloader:
@@ -99,49 +45,14 @@ for X, y in test_dataloader:
 # Define model
 model = LeNet_plus_plus().to(device)
 
-
-class entropic_openset_loss():
-    def __init__(self, num_of_classes=10):
-        self.num_of_classes = num_of_classes
-        self.eye = torch.eye(self.num_of_classes).to(device)
-        self.ones = torch.ones(self.num_of_classes).to(device)
-        self.unknowns_multiplier = 1. / self.num_of_classes
-
-    def __call__(self, logit_values, target, sample_weights=None):
-        # logit_values --> tensor with #batchsize samples, per sample 10 values with logits for each class.
-        # target f.e. tensor([0, 4, 1, 9, 2]) with len = batchsize
-
-        # print(logit_values)
-
-        catagorical_targets = torch.zeros(logit_values.shape).to(
-            device)  # tensor with size (batchsize, #classes), all logits to 0
-        known_indexes = target != -1  # list of bools for the known classes
-        unknown_indexes = ~known_indexes  # list of bools for the unknown classes
-        catagorical_targets[known_indexes, :] = self.eye[
-            target[known_indexes]]  # puts the logits to 1 at the correct index (class) for each sample
-        # print(catagorical_targets)
-        catagorical_targets[unknown_indexes, :] = self.ones.expand(
-            (torch.sum(unknown_indexes).item(), self.num_of_classes)) * self.unknowns_multiplier
-        # print(catagorical_targets)
-
-        log_values = F.log_softmax(logit_values, dim=1)  # EOS --> -log(Softmax(x))
-        negative_log_values = -1 * log_values
-        loss = negative_log_values * catagorical_targets
-        # why is there a mean here? --> doesnt matter, leave it. just pump up learning rate
-        sample_loss = torch.mean(loss, dim=1)
-        # sample_loss = torch.max(loss, dim=1).values
-        # print(sample_loss)
-        if sample_weights is not None:
-            sample_loss = sample_loss * sample_weights
-        return sample_loss.mean()
-
-
+# loss function
 loss_fn = entropic_openset_loss()
 # loss_fn = nn.CrossEntropyLoss()
 # loss_fn = nn.Softmax()
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 
 
+#training loop
 def train(dataloader, model, loss_fn, optimizer):
     size = len(dataloader.dataset)
 
@@ -169,6 +80,7 @@ def train(dataloader, model, loss_fn, optimizer):
             print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
 
 
+#testing loop
 def test(dataloader, model):
     # one nested list for each digit
     features = [[], [], [], [], [], [], [], [], [], []]
