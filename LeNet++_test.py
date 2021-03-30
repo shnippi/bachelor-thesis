@@ -10,6 +10,7 @@ import numpy as np
 from itertools import chain
 from viz import *
 from ConcatDataset import ConcatDataset
+from HiddenPrints import HiddenPrints
 
 # Get cpu or gpu device for training.
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -19,7 +20,8 @@ print("Using {} device".format(device))
 batch_size = 4 if torch.cuda.is_available() else 5
 epochs = 30 if torch.cuda.is_available() else 1
 learning_rate = 1e-3 * 5
-
+trainsamples = 40000
+testsamples = 10000
 
 
 # Download training data from open datasets.
@@ -56,22 +58,24 @@ digits_test = datasets.EMNIST(
     transform=ToTensor(),
 )
 
-# training_data = letters_train
-# test_data = letters_test
+# training_data = digits_train
+# test_data = digits_test
 
-training_data = ConcatDataset([digits_train, letters_train])
-test_data = ConcatDataset([digits_test, letters_test])
+#no printing
+with HiddenPrints():
+    training_data = ConcatDataset([digits_train, letters_train])
+    test_data = ConcatDataset([digits_test, letters_test])
 
-subtrain = list(range(1, len(training_data) + 1, int((len(training_data) + 1) / 40000)))
-subtest = list(range(1, len(test_data) + 1, int((len(test_data) + 1) / 10000)))
 
-training_data = Subset(training_data, subtrain)
-test_data = Subset(test_data, subtest)
-
-# take subset of training set if no GPU available
+# take different sizes of the datasets depending if GPU is available
 if device == "cpu":
     subtrain = list(range(1, 5001))
     subtest = list(range(1, 1001))
+    training_data = Subset(training_data, subtrain)
+    test_data = Subset(test_data, subtest)
+else:
+    subtrain = list(range(1, len(training_data) + 1, round((len(training_data) + 1) / trainsamples)))
+    subtest = list(range(1, len(test_data) + 1, round((len(test_data) + 1) / testsamples)))
     training_data = Subset(training_data, subtrain)
     test_data = Subset(test_data, subtest)
 
@@ -79,7 +83,7 @@ if device == "cpu":
 train_dataloader = DataLoader(training_data, batch_size=batch_size)
 test_dataloader = DataLoader(test_data, batch_size=batch_size)
 
-x,y = list(test_dataloader)[len(test_dataloader) -1]
+x,y = list(test_dataloader)[len(test_dataloader) -2]
 print(x)
 print(y)
 
