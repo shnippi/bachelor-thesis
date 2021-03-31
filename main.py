@@ -22,7 +22,7 @@ print("Using {} device".format(device))
 # Hyperparameters
 batch_size = 64 if torch.cuda.is_available() else 5
 epochs = 30 if torch.cuda.is_available() else 1
-learning_rate = 1e-3 * 5
+learning_rate = 1e-3
 trainsamples = 60000
 testsamples = 10000
 
@@ -34,6 +34,12 @@ training_data, test_data = Data_manager.Concat_digit_letter(trainsamples, testsa
 # Create data loaders.
 train_dataloader = DataLoader(training_data, batch_size=batch_size)
 test_dataloader = DataLoader(test_data, batch_size=batch_size)
+
+#find the first batch with a letter
+# for batch, (X, y) in list(enumerate(train_dataloader)):
+#     if -1 in y:
+#         print(batch)
+#         break
 
 # see what dimensions the input is
 for X, y in test_dataloader:
@@ -60,11 +66,17 @@ def train(dataloader, model, loss_fn, optimizer):
     # ( 0 (batchnumber) , ( tensor([.. grayscale values ..]) , tensor([.. labels ..]) )  )  <-- for batchsize=1
     for batch, (X, y) in enumerate(dataloader):
 
+        # if -1 not in y:
+        #     continue
+
         # print(list(enumerate(dataloader))[1]) #prints a batch
         X, y = X.to(device), y.to(device)
 
         # implicitely calles forward
         pred, feat = model(X)
+
+        # print(pred)
+        # print(y)
 
         loss = loss_fn(pred, y)
 
@@ -82,8 +94,8 @@ def train(dataloader, model, loss_fn, optimizer):
 
 #testing loop
 def test(dataloader, model):
-    # one nested list for each digit
-    features = [[], [], [], [], [], [], [], [], [], []]
+    # one nested list for each digit + 1 unknown class
+    features = [[], [], [], [], [], [], [], [], [], [], []]
 
     size = len(dataloader.dataset)
     print(size)
@@ -99,10 +111,11 @@ def test(dataloader, model):
 
             ylist = y.to("cpu").detach().tolist()
 
-            # for every prediction put the 2dfeatures in the correct sublist according to their true label(index)
+            # put the 2dfeatures in the correct sublist according to their true label(index). -1 --> last sublist
             for i in range(len(y) - 1):
                 features[ylist[i]].append(feat.to("cpu").detach().tolist()[i])
 
+    print(len(features))
     simplescatter(features)
 
     test_loss /= size
