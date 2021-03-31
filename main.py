@@ -22,31 +22,23 @@ print("Using {} device".format(device))
 # Hyperparameters
 batch_size = 64 if torch.cuda.is_available() else 5
 epochs = 30 if torch.cuda.is_available() else 1
-learning_rate = 1e-3
+learning_rate = 1e-2
 trainsamples = 60000
 testsamples = 10000
 
 # create Datasets
-training_data, test_data = Data_manager.Concat_digit_letter(trainsamples, testsamples, device)
-# training_data, test_data = Data_manager.mnist_vanilla(device)
-
+# training_data, test_data = Data_manager.Concat_digit_letter(device)
+training_data, test_data = Data_manager.mnist_vanilla(device)
 
 # Create data loaders.
 train_dataloader = DataLoader(training_data, batch_size=batch_size)
 test_dataloader = DataLoader(test_data, batch_size=batch_size)
-
-#find the first batch with a letter
-# for batch, (X, y) in list(enumerate(train_dataloader)):
-#     if -1 in y:
-#         print(batch)
-#         break
 
 # see what dimensions the input is
 for X, y in test_dataloader:
     print("Shape of X [N, C, H, W]: ", X.shape)
     print("Shape of y: ", y.shape, y.dtype)
     break
-
 
 # Define model
 model = LeNet_plus_plus().to(device)
@@ -58,7 +50,7 @@ loss_fn = entropic_openset_loss()
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 
 
-#training loop
+# training loop
 def train(dataloader, model, loss_fn, optimizer):
     size = len(dataloader.dataset)
 
@@ -92,13 +84,13 @@ def train(dataloader, model, loss_fn, optimizer):
             print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
 
 
-#testing loop
+# testing loop
 def test(dataloader, model):
     # one nested list for each digit + 1 unknown class
     features = [[], [], [], [], [], [], [], [], [], [], []]
 
     size = len(dataloader.dataset)
-    print(size)
+    # print(size)
     model.eval()
     test_loss, correct = 0, 0
     with torch.no_grad():  # dont need the backward prop
@@ -115,8 +107,8 @@ def test(dataloader, model):
             for i in range(len(y) - 1):
                 features[ylist[i]].append(feat.to("cpu").detach().tolist()[i])
 
-    print(len(features))
-    simplescatter(features)
+    # plot the features with #classes
+    simplescatter(features, 10)
 
     test_loss /= size
     correct /= size

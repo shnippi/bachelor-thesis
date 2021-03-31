@@ -31,7 +31,7 @@ def mnist_vanilla(device):
         return train, test
 
 
-def Concat_digit_letter(trainsamples, testsamples, device):
+def Concat_digit_letter(device, trainsamples = None, testsamples = None):
     letters_train = datasets.EMNIST(
         root="data",
         split="letters",
@@ -79,9 +79,11 @@ def Concat_digit_letter(trainsamples, testsamples, device):
 
         return training_data, test_data
     else:
-        subtrain = list(range(1, len(training_data) + 1, round((len(training_data) + 1) / trainsamples)))
-        subtest = list(range(1, len(test_data) + 1, round((len(test_data) + 1) / testsamples)))
-        training_data = Subset(training_data, subtrain)
-        test_data = Subset(test_data, subtest)
+        if trainsamples:
+            subtrain = list(range(1, len(training_data) + 1, round((len(training_data) + 1) / trainsamples)))
+            training_data = Subset(training_data, subtrain)
+        if testsamples:
+            subtest = list(range(1, len(test_data) + 1, round((len(test_data) + 1) / testsamples)))
+            test_data = Subset(test_data, subtest)
 
         return training_data, test_data
