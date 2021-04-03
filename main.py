@@ -21,14 +21,15 @@ print("Using {} device".format(device))
 
 # Hyperparameters
 batch_size = 64 if torch.cuda.is_available() else 5
-epochs = 30 if torch.cuda.is_available() else 1
-learning_rate = 1e-2
+epochs = 50 if torch.cuda.is_available() else 1
+learning_rate = 1e-3
 trainsamples = 60000
 testsamples = 10000
 
 # create Datasets
-# training_data, test_data = Data_manager.Concat_digit_letter(device)
-training_data, test_data = Data_manager.mnist_vanilla(device)
+# training_data, test_data = Data_manager.Concat_digit_letter(device, trainsamples, testsamples)
+# training_data, test_data = Data_manager.mnist_vanilla(device)
+training_data, test_data = Data_manager.emnist_digits(device)
 
 # Create data loaders.
 train_dataloader = DataLoader(training_data, batch_size=batch_size)

@@ -31,7 +31,35 @@ def mnist_vanilla(device):
         return train, test
 
 
-def Concat_digit_letter(device, trainsamples = None, testsamples = None):
+def emnist_digits(device):
+    train = datasets.EMNIST(
+        root="data",
+        split="digits",
+        train=True,
+        download=True,
+        transform=ToTensor(),
+    )
+
+    test = datasets.EMNIST(
+        root="data",
+        split="digits",
+        train=False,
+        download=True,
+        transform=ToTensor(),
+    )
+
+    if device == "cpu":
+        subtrain = list(range(1, 5001))
+        subtest = list(range(1, 1001))
+        training_data = Subset(train, subtrain)
+        test_data = Subset(test, subtest)
+
+        return training_data, test_data
+    else:
+        return train, test
+
+
+def Concat_digit_letter(device, trainsamples=None, testsamples=None):
     letters_train = datasets.EMNIST(
         root="data",
         split="letters",
