@@ -27,9 +27,10 @@ trainsamples = 60000
 testsamples = 10000
 
 # create Datasets
+training_data, test_data = Data_manager.mnist_plus_letter(device)
 # training_data, test_data = Data_manager.Concat_digit_letter(device, trainsamples, testsamples)
 # training_data, test_data = Data_manager.mnist_vanilla(device)
-training_data, test_data = Data_manager.emnist_digits(device)
+# training_data, test_data = Data_manager.emnist_digits(device)
 
 # Create data loaders.
 train_dataloader = DataLoader(training_data, batch_size=batch_size)
@@ -109,7 +110,7 @@ def test(dataloader, model):
                 features[ylist[i]].append(feat.to("cpu").detach().tolist()[i])
 
     # plot the features with #classes
-    simplescatter(features, 10)
+    simplescatter(features, 11)
 
     test_loss /= size
     correct /= size
