@@ -22,7 +22,7 @@ print("Using {} device".format(device))
 # Hyperparameters
 batch_size = 64 if torch.cuda.is_available() else 5
 epochs = 50 if torch.cuda.is_available() else 1
-learning_rate = 1e-3
+learning_rate = 1e-2
 trainsamples = 60000
 testsamples = 10000
 
@@ -49,7 +49,7 @@ model = LeNet_plus_plus().to(device)
 loss_fn = entropic_openset_loss()
 # loss_fn = nn.CrossEntropyLoss()
 # loss_fn = nn.Softmax()
-optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
+optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum= 0.9)
 
 
 # training loop
@@ -66,7 +66,7 @@ def train(dataloader, model, loss_fn, optimizer):
         # print(list(enumerate(dataloader))[1]) #prints a batch
         X, y = X.to(device), y.to(device)
 
-        # implicitely calles forward
+        # implicitly calls forward
         pred, feat = model(X)
 
         # print(pred)
@@ -101,11 +101,13 @@ def test(dataloader, model):
             X, y = X.to(device), y.to(device)
             pred, feat = model(X)
             test_loss += loss_fn(pred, y).item()
+            #TODO: correct this for unknowns
             correct += (pred.argmax(1) == y).type(torch.float).sum().item()
 
             ylist = y.to("cpu").detach().tolist()
 
-            # put the 2dfeatures in the correct sublist according to their true label(index). -1 --> last sublist
+            # put the 2dfeatures for every sample in the correct sublist according to their true label(index)
+            # -1 --> last sublist
             for i in range(len(y) - 1):
                 features[ylist[i]].append(feat.to("cpu").detach().tolist()[i])
 

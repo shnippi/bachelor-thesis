@@ -22,13 +22,14 @@ class entropic_openset_loss():
         # print(known_indexes)
         # print(unknown_indexes)
         catagorical_targets[known_indexes, :] = self.eye[
-            target[known_indexes]]  # puts the logits to 1 at the correct index (class) for each sample
+            target[known_indexes]]  # puts the logits to 1 at the correct index (class) for each known sample
         # print(catagorical_targets)
         catagorical_targets[unknown_indexes, :] = self.ones.expand( # puts 1/#classes (0.1) for every logit --> max entropy
             (torch.sum(unknown_indexes).item(), self.num_of_classes)) * self.unknowns_multiplier
         # print(catagorical_targets)
 
         log_values = F.log_softmax(logit_values, dim=1)  # EOS --> -log(Softmax(x))
+        # print(log_values)
         negative_log_values = -1 * log_values
         loss = negative_log_values * catagorical_targets
         # print(loss)
