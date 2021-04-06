@@ -21,7 +21,7 @@ print("Using {} device".format(device))
 
 # Hyperparameters
 batch_size = 64 if torch.cuda.is_available() else 5
-epochs = 50 if torch.cuda.is_available() else 1
+epochs = 100 if torch.cuda.is_available() else 1
 learning_rate = 1e-2
 trainsamples = 60000
 testsamples = 10000
@@ -49,7 +49,7 @@ model = LeNet_plus_plus().to(device)
 loss_fn = entropic_openset_loss()
 # loss_fn = nn.CrossEntropyLoss()
 # loss_fn = nn.Softmax()
-optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum= 0.9)
+optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 
 
 # training loop
