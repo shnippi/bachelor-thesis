@@ -20,9 +20,9 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 print("Using {} device".format(device))
 
 # Hyperparameters
-batch_size = 64 if torch.cuda.is_available() else 5
+batch_size = 128 if torch.cuda.is_available() else 5
 epochs = 100 if torch.cuda.is_available() else 1
-learning_rate = 1e-2
+learning_rate = 1e-3 * 5
 trainsamples = 60000
 testsamples = 10000
 
@@ -49,7 +49,7 @@ model = LeNet_plus_plus().to(device)
 loss_fn = entropic_openset_loss()
 # loss_fn = nn.CrossEntropyLoss()
 # loss_fn = nn.Softmax()
-optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
+optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
 
 
 # training loop
@@ -59,6 +59,8 @@ def train(dataloader, model, loss_fn, optimizer):
     # enumerates the image in greyscale value (X) with the true label (y) in lists that are as long as the batchsize
     # ( 0 (batchnumber) , ( tensor([.. grayscale values ..]) , tensor([.. labels ..]) )  )  <-- for batchsize=1
     for batch, (X, y) in enumerate(dataloader):
+
+        optimizer.zero_grad()
 
         # if -1 not in y:
         #     continue
@@ -77,8 +79,10 @@ def train(dataloader, model, loss_fn, optimizer):
         # print(loss)
 
         # Backpropagation
-        optimizer.zero_grad()
         loss.backward()
+
+        # TODO: add rauschen here (with pred and loss again) like training twice in the loop
+
         optimizer.step()
 
         if batch % 100 == 0:
