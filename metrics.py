@@ -93,4 +93,8 @@ def confidence(logits, target, negative_offset=0.1):
         if torch.sum(~known):
             confidence += torch.sum(1. + negative_offset - torch.max(pred[~known], dim=1)[0])
 
-    return torch.tensor((confidence, len(logits)))
+        # TODO: divide by the length of logits?
+
+    return confidence / len(logits)
+
+    #  return torch.tensor((confidence, len(logits)))

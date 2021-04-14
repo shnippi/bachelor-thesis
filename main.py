@@ -14,6 +14,7 @@ from HiddenPrints import HiddenPrints
 from LeNet_plus_plus import LeNet_plus_plus
 import Data_manager
 from loss import entropic_openset_loss
+from metrics import *
 
 # Get cpu or gpu device for training.
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -23,8 +24,8 @@ print("Using {} device".format(device))
 batch_size = 128 if torch.cuda.is_available() else 5
 epochs = 100 if torch.cuda.is_available() else 1
 learning_rate = 1e-3 * 5
-trainsamples = 60000
-testsamples = 10000
+trainsamples = 6000
+testsamples = 1000
 
 # create Datasets
 training_data, test_data = Data_manager.mnist_plus_letter(device)
@@ -96,31 +97,34 @@ def test(dataloader, model):
     features = [[], [], [], [], [], [], [], [], [], [], []]
 
     size = len(dataloader.dataset)
-    # print(size)
+    n_batches = len(dataloader)
+
     model.eval()
-    test_loss, correct = 0, 0
+    test_loss, conf, correct = 0, 0, 0
     with torch.no_grad():  # dont need the backward prop
         # iterating over every batch
         for X, y in dataloader:
             X, y = X.to(device), y.to(device)
             pred, feat = model(X)
             test_loss += loss_fn(pred, y).item()
-            #TODO: correct this for unknowns
+            #TODO: check if confidence is correct
+            conf += confidence(pred, y)
             correct += (pred.argmax(1) == y).type(torch.float).sum().item()
-
-            ylist = y.to("cpu").detach().tolist()
 
             # put the 2dfeatures for every sample in the correct sublist according to their true label(index)
             # -1 --> last sublist
+            ylist = y.to("cpu").detach().tolist()
             for i in range(len(y) - 1):
                 features[ylist[i]].append(feat.to("cpu").detach().tolist()[i])
 
     # plot the features with #classes
     simplescatter(features, 11)
 
-    test_loss /= size
+    test_loss /= n_batches
     correct /= size
-    print(f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
+    conf /= n_batches
+    # print(f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
+    print(f"Test Error: \n Confidence: {conf * 100:>0.1f}%, Avg loss: {test_loss:>8f} \n")
 
 
 if __name__ == '__main__':
