@@ -22,7 +22,7 @@ print("Using {} device".format(device))
 
 # Hyperparameters
 batch_size = 128 if torch.cuda.is_available() else 5
-epochs = 100 if torch.cuda.is_available() else 1
+epochs = 500 if torch.cuda.is_available() else 1
 learning_rate = 1e-3 * 5
 trainsamples = 6000
 testsamples = 1000
