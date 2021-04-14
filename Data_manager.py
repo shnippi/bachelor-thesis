@@ -60,6 +60,13 @@ def emnist_digits(device):
 
 
 def mnist_plus_letter(device, trainsamples=None, testsamples=None):
+    # training set
+    digits_train = datasets.MNIST(
+        root="data",
+        train=True,
+        download=True,
+        transform=ToTensor(),
+    )
     letters_train = datasets.EMNIST(
         root="data",
         split="letters",
@@ -68,24 +75,16 @@ def mnist_plus_letter(device, trainsamples=None, testsamples=None):
         transform=ToTensor(),
     )
 
-    # Download test data from open datasets.
-    letters_test = datasets.EMNIST(
+    # testing set
+    digits_test = datasets.MNIST(
         root="data",
-        split="letters",
         train=False,
         download=True,
         transform=ToTensor(),
     )
-
-    digits_train = datasets.MNIST(
+    letters_test = datasets.EMNIST(
         root="data",
-        train=True,
-        download=True,
-        transform=ToTensor(),
-    )
-
-    digits_test = datasets.MNIST(
-        root="data",
+        split="letters",
         train=False,
         download=True,
         transform=ToTensor(),

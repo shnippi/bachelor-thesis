@@ -82,7 +82,7 @@ def train(dataloader, model, loss_fn, optimizer):
         # Backpropagation
         loss.backward()
 
-        # TODO: add rauschen here (with pred and loss again) like training twice in the loop
+        # TODO: add rauschen here (with pred and loss again of the new sample) like training twice in the loop
 
         optimizer.step()
 
