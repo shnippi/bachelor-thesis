@@ -1,4 +1,5 @@
 import torch
+from numpy import random
 from torch import nn
 from torch.utils.data import DataLoader, random_split, Subset
 from torchvision import datasets
@@ -83,6 +84,21 @@ def train(dataloader, model, loss_fn, optimizer):
         loss.backward()
 
         # TODO: add rauschen here (with pred and loss again of the new sample) like training twice in the loop
+        # TODO: idea 1 : multiply scalar
+        # TODO: idea 1 : add scalar
+        # TODO: idea 1 : rotate by a small angle in the direction of gradient (goodfellow)
+
+        # add perturbation
+        for idx in range(len(X)):
+            X[idx] += torch.rand(X[idx].shape, device=device) * 0.1 * random.randint(-1,1)
+
+        y = torch.ones(y.shape, dtype=torch.long, device=device) * -1
+
+        pred, feat = model(X)
+        loss = loss_fn(pred, y)
+        loss.backward()
+
+
 
         optimizer.step()
 
@@ -107,7 +123,7 @@ def test(dataloader, model):
             X, y = X.to(device), y.to(device)
             pred, feat = model(X)
             test_loss += loss_fn(pred, y).item()
-            #TODO: check if confidence is correct
+            # TODO: check if confidence is correct
             conf += confidence(pred, y)
             correct += (pred.argmax(1) == y).type(torch.float).sum().item()
 

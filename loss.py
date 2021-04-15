@@ -1,6 +1,7 @@
 import torch
 from torch.nn import functional as F
 
+
 class entropic_openset_loss():
     def __init__(self, num_of_classes=10):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -24,7 +25,8 @@ class entropic_openset_loss():
         catagorical_targets[known_indexes, :] = self.eye[
             target[known_indexes]]  # puts the logits to 1 at the correct index (class) for each known sample
         # print(catagorical_targets)
-        catagorical_targets[unknown_indexes, :] = self.ones.expand( # puts 1/#classes (0.1) for every logit --> max entropy
+        catagorical_targets[unknown_indexes, :] = self.ones.expand(
+            # puts 1/#classes (0.1) for every logit(max entropy)
             (torch.sum(unknown_indexes).item(), self.num_of_classes)) * self.unknowns_multiplier
         # print(catagorical_targets)
 
