@@ -30,7 +30,8 @@ testsamples = 1000
 
 # create Datasets
 training_data, test_data = Data_manager.mnist_plus_letter(device)
-# training_data, test_data = Data_manager.Concat_digit_letter(device, trainsamples, testsamples)
+# training_data, test_data = Data_manager.mnist_adversarials(device)
+# training_data, test_data = Data_manager.Concat_emnist(device, trainsamples, testsamples)
 # training_data, test_data = Data_manager.mnist_vanilla(device)
 # training_data, test_data = Data_manager.emnist_digits(device)
 
@@ -88,15 +89,15 @@ def train(dataloader, model, loss_fn, optimizer):
         # TODO: idea 1 : add scalar
         # TODO: idea 1 : rotate by a small angle in the direction of gradient (goodfellow)
 
-        # add perturbation
-        for idx in range(len(X)):
-            X[idx] += torch.rand(X[idx].shape, device=device) * 0.1 * random.randint(-1,1)
-
-        y = torch.ones(y.shape, dtype=torch.long, device=device) * -1
-
-        pred, feat = model(X)
-        loss = loss_fn(pred, y)
-        loss.backward()
+        # # add perturbation
+        # for idx in range(len(X)):
+        #     X[idx] += torch.rand(X[idx].shape, device=device) * 0.1 * random.randint(-1,1)
+        #
+        # y = torch.ones(y.shape, dtype=torch.long, device=device) * -1
+        #
+        # pred, feat = model(X)
+        # loss = loss_fn(pred, y)
+        # loss.backward()
 
 
 

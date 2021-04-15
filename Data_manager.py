@@ -5,7 +5,28 @@ from ConcatDataset import ConcatDataset
 from HiddenPrints import HiddenPrints
 
 
-def mnist_vanilla(device):
+def make_subset(device, training_data, test_data, trainsamples=None, testsamples=None):
+    # take different sizes of the datasets depending if GPU is available
+
+    if device == "cpu":
+        subtrain = list(range(1, 5001))
+        subtest = list(range(1, 1001))
+        training_data = Subset(training_data, subtrain)
+        test_data = Subset(test_data, subtest)
+
+        return training_data, test_data
+    else:
+        if trainsamples:
+            subtrain = list(range(1, len(training_data) + 1, round((len(training_data) + 1) / trainsamples)))
+            training_data = Subset(training_data, subtrain)
+        if testsamples:
+            subtest = list(range(1, len(test_data) + 1, round((len(test_data) + 1) / testsamples)))
+            test_data = Subset(test_data, subtest)
+
+        return training_data, test_data
+
+
+def mnist_vanilla(device, trainsamples=None, testsamples=None):
     train = datasets.MNIST(
         root="data",
         train=True,
@@ -20,18 +41,10 @@ def mnist_vanilla(device):
         transform=ToTensor(),
     )
 
-    if device == "cpu":
-        subtrain = list(range(1, 5001))
-        subtest = list(range(1, 1001))
-        training_data = Subset(train, subtrain)
-        test_data = Subset(test, subtest)
-
-        return training_data, test_data
-    else:
-        return train, test
+    return make_subset(device, train, test, trainsamples, testsamples)
 
 
-def emnist_digits(device):
+def emnist_digits(device, trainsamples=None, testsamples=None):
     train = datasets.EMNIST(
         root="data",
         split="digits",
@@ -48,15 +61,8 @@ def emnist_digits(device):
         transform=ToTensor(),
     )
 
-    if device == "cpu":
-        subtrain = list(range(1, 5001))
-        subtest = list(range(1, 1001))
-        training_data = Subset(train, subtrain)
-        test_data = Subset(test, subtest)
+    return make_subset(device, train, test, trainsamples, testsamples)
 
-        return training_data, test_data
-    else:
-        return train, test
 
 
 def mnist_plus_letter(device, trainsamples=None, testsamples=None):
@@ -95,26 +101,10 @@ def mnist_plus_letter(device, trainsamples=None, testsamples=None):
         training_data = ConcatDataset([digits_train, letters_train])
         test_data = ConcatDataset([digits_test, letters_test])
 
-    # take different sizes of the datasets depending if GPU is available
-    if device == "cpu":
-        subtrain = list(range(1, 5001))
-        subtest = list(range(1, 1001))
-        training_data = Subset(training_data, subtrain)
-        test_data = Subset(test_data, subtest)
-
-        return training_data, test_data
-    else:
-        if trainsamples:
-            subtrain = list(range(1, len(training_data) + 1, round((len(training_data) + 1) / trainsamples)))
-            training_data = Subset(training_data, subtrain)
-        if testsamples:
-            subtest = list(range(1, len(test_data) + 1, round((len(test_data) + 1) / testsamples)))
-            test_data = Subset(test_data, subtest)
-
-        return training_data, test_data
+    return make_subset(device, training_data, test_data, trainsamples, testsamples)
 
 
-def Concat_digit_letter(device, trainsamples=None, testsamples=None):
+def Concat_emnist(device, trainsamples=None, testsamples=None):
     letters_train = datasets.EMNIST(
         root="data",
         split="letters",
@@ -153,20 +143,35 @@ def Concat_digit_letter(device, trainsamples=None, testsamples=None):
         training_data = ConcatDataset([digits_train, letters_train])
         test_data = ConcatDataset([digits_test, letters_test])
 
-    # take different sizes of the datasets depending if GPU is available
-    if device == "cpu":
-        subtrain = list(range(1, 5001))
-        subtest = list(range(1, 1001))
-        training_data = Subset(training_data, subtrain)
-        test_data = Subset(test_data, subtest)
+    return make_subset(device, training_data, test_data, trainsamples, testsamples)
 
-        return training_data, test_data
-    else:
-        if trainsamples:
-            subtrain = list(range(1, len(training_data) + 1, round((len(training_data) + 1) / trainsamples)))
-            training_data = Subset(training_data, subtrain)
-        if testsamples:
-            subtest = list(range(1, len(test_data) + 1, round((len(test_data) + 1) / testsamples)))
-            test_data = Subset(test_data, subtest)
 
-        return training_data, test_data
+def mnist_adversarials(device, trainsamples=None, testsamples=None):
+    # training set
+    training_data = datasets.MNIST(
+        root="data",
+        train=True,
+        download=True,
+        transform=ToTensor(),
+    )
+
+    # testing set
+    digits_test = datasets.MNIST(
+        root="data",
+        train=False,
+        download=True,
+        transform=ToTensor(),
+    )
+    letters_test = datasets.EMNIST(
+        root="data",
+        split="letters",
+        train=False,
+        download=True,
+        transform=ToTensor(),
+    )
+
+    # no printing
+    with HiddenPrints():
+        test_data = ConcatDataset([digits_test, letters_test])
+
+    return make_subset(device, training_data, test_data, trainsamples, testsamples)
