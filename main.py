@@ -18,13 +18,13 @@ from loss import entropic_openset_loss
 from metrics import *
 
 # Get cpu or gpu device for training.
-device = "cuda" if torch.cuda.is_available() else "cpu"
+device = "cuda:0" if torch.cuda.is_available() else "cpu"
 print("Using {} device".format(device))
 
 # Hyperparameters
 batch_size = 128 if torch.cuda.is_available() else 5
 epochs = 500 if torch.cuda.is_available() else 1
-learning_rate = 1e-3 * 5
+learning_rate = 0.01
 trainsamples = 6000
 testsamples = 1000
 
@@ -53,22 +53,24 @@ loss_fn = entropic_openset_loss()
 # loss_fn = nn.CrossEntropyLoss()
 # loss_fn = nn.Softmax()
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
+# optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
 
 # training loop
 def train(dataloader, model, loss_fn, optimizer):
+    model.train()
     size = len(dataloader.dataset)
 
     # enumerates the image in greyscale value (X) with the true label (y) in lists that are as long as the batchsize
     # ( 0 (batchnumber) , ( tensor([.. grayscale values ..]) , tensor([.. labels ..]) )  )  <-- for batchsize=1
     for batch, (X, y) in enumerate(dataloader):
+        # print(list(enumerate(dataloader))[1]) #prints a batch
 
         optimizer.zero_grad()
 
         # if -1 not in y:
         #     continue
 
-        # print(list(enumerate(dataloader))[1]) #prints a batch
         X, y = X.to(device), y.to(device)
 
         # implicitly calls forward
@@ -78,7 +80,6 @@ def train(dataloader, model, loss_fn, optimizer):
         # print(y)
 
         loss = loss_fn(pred, y)
-
         # print(loss)
 
         # Backpropagation
