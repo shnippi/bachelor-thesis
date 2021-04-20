@@ -15,6 +15,7 @@ class entropic_openset_loss():
         # target f.e. tensor([0, 4, 1, 9, 2]) with len = batchsize
 
         # print(logit_values)
+        # print(target)
 
         catagorical_targets = torch.zeros(logit_values.shape).to(
             self.device)  # tensor with size (batchsize, #classes), all logits to 0
@@ -33,7 +34,7 @@ class entropic_openset_loss():
         log_values = F.log_softmax(logit_values, dim=1)  # EOS --> -log(Softmax(x))
         # print(log_values)
         negative_log_values = -1 * log_values
-        loss = negative_log_values * catagorical_targets
+        loss = negative_log_values * catagorical_targets # puts the -log-values at index for each sample (rest is 0)
         # print(loss)
         # why is there a mean here? --> doesnt matter, leave it. just pump up learning rate
         sample_loss = torch.mean(loss, dim=1)

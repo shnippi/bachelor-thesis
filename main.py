@@ -22,10 +22,10 @@ device = "cuda:0" if torch.cuda.is_available() else "cpu"
 print("Using {} device".format(device))
 
 # Hyperparameters
-batch_size = 128 if torch.cuda.is_available() else 5
+batch_size = 128 if torch.cuda.is_available() else 4
 epochs = 500 if torch.cuda.is_available() else 1
 learning_rate = 0.01
-trainsamples = 6000
+trainsamples = 5000
 testsamples = 1000
 
 # create Datasets
@@ -53,6 +53,8 @@ loss_fn = entropic_openset_loss()
 # loss_fn = nn.CrossEntropyLoss()
 # loss_fn = nn.Softmax()
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
+
+
 # optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
 
@@ -99,8 +101,6 @@ def train(dataloader, model, loss_fn, optimizer):
         # pred, feat = model(X)
         # loss = loss_fn(pred, y)
         # loss.backward()
-
-
 
         optimizer.step()
 

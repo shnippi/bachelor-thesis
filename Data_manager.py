@@ -8,22 +8,14 @@ from HiddenPrints import HiddenPrints
 def make_subset(device, training_data, test_data, trainsamples=None, testsamples=None):
     # take different sizes of the datasets depending if GPU is available
 
-    if device == "cpu":
-        subtrain = list(range(1, 5001))
-        subtest = list(range(1, 1001))
+    if trainsamples:
+        subtrain = list(range(1, len(training_data) + 1, round((len(training_data) + 1) / trainsamples)))
         training_data = Subset(training_data, subtrain)
+    if testsamples:
+        subtest = list(range(1, len(test_data) + 1, round((len(test_data) + 1) / testsamples)))
         test_data = Subset(test_data, subtest)
 
-        return training_data, test_data
-    else:
-        if trainsamples:
-            subtrain = list(range(1, len(training_data) + 1, round((len(training_data) + 1) / trainsamples)))
-            training_data = Subset(training_data, subtrain)
-        if testsamples:
-            subtest = list(range(1, len(test_data) + 1, round((len(test_data) + 1) / testsamples)))
-            test_data = Subset(test_data, subtest)
-
-        return training_data, test_data
+    return training_data, test_data
 
 
 def mnist_vanilla(device, trainsamples=None, testsamples=None):
@@ -62,7 +54,6 @@ def emnist_digits(device, trainsamples=None, testsamples=None):
     )
 
     return make_subset(device, train, test, trainsamples, testsamples)
-
 
 
 def mnist_plus_letter(device, trainsamples=None, testsamples=None):
