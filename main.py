@@ -53,8 +53,6 @@ loss_fn = entropic_openset_loss()
 # loss_fn = nn.CrossEntropyLoss()
 # loss_fn = nn.Softmax()
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
-
-
 # optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
 
@@ -88,9 +86,9 @@ def train(dataloader, model, loss_fn, optimizer):
         loss.backward()
 
         # TODO: add rauschen here (with pred and loss again of the new sample) like training twice in the loop
-        # TODO: idea 1 : multiply scalar
-        # TODO: idea 1 : add scalar
-        # TODO: idea 1 : rotate by a small angle in the direction of gradient (goodfellow)
+        # TODO: idea : multiply scalar
+        # TODO: idea : add scalar
+        # TODO: idea : rotate by a small angle in the direction of gradient (goodfellow)
 
         # # add perturbation
         # for idx in range(len(X)):
