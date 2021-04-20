@@ -29,7 +29,7 @@ trainsamples = 5000
 testsamples = 1000
 
 # create Datasets
-training_data, test_data = Data_manager.mnist_plus_letter(device)
+training_data, test_data = Data_manager.mnist_plus_letter(device, trainsamples, testsamples)
 # training_data, test_data = Data_manager.mnist_adversarials(device)
 # training_data, test_data = Data_manager.Concat_emnist(device, trainsamples, testsamples)
 # training_data, test_data = Data_manager.mnist_vanilla(device)
