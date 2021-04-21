@@ -24,13 +24,13 @@ print("Using {} device".format(device))
 # Hyperparameters
 batch_size = 128 if torch.cuda.is_available() else 4
 epochs = 500 if torch.cuda.is_available() else 1
-learning_rate = 0.01
+learning_rate = 0.005
 trainsamples = 5000
 testsamples = 1000
 
 # create Datasets
-training_data, test_data = Data_manager.mnist_plus_letter(device, trainsamples, testsamples)
-# training_data, test_data = Data_manager.mnist_adversarials(device)
+# training_data, test_data = Data_manager.mnist_plus_letter(device)
+training_data, test_data = Data_manager.mnist_adversarials(device)
 # training_data, test_data = Data_manager.Concat_emnist(device, trainsamples, testsamples)
 # training_data, test_data = Data_manager.mnist_vanilla(device)
 # training_data, test_data = Data_manager.emnist_digits(device)
@@ -90,15 +90,22 @@ def train(dataloader, model, loss_fn, optimizer):
         # TODO: idea : add scalar
         # TODO: idea : rotate by a small angle in the direction of gradient (goodfellow)
 
-        # # add perturbation
-        # for idx in range(len(X)):
-        #     X[idx] += torch.rand(X[idx].shape, device=device) * 0.1 * random.randint(-1,1)
-        #
-        # y = torch.ones(y.shape, dtype=torch.long, device=device) * -1
-        #
-        # pred, feat = model(X)
-        # loss = loss_fn(pred, y)
-        # loss.backward()
+        # add random perturbation +[-0.1, 0.1] for every pixel for every sample in batch X
+        for idx in range(len(X)):
+            X[idx][0] += torch.rand(X[idx][0].shape, device=device) * 0.2 * random.choice([-1,1])
+
+        y = torch.ones(y.shape, dtype=torch.long, device=device) * -1
+
+        # plt.imshow(X[0][0].to("cpu"), "gray")
+        # plt.show()
+
+        pred, feat = model(X)
+
+        # print(pred)
+        # print(y)
+
+        loss = loss_fn(pred, y)
+        loss.backward()
 
         optimizer.step()
 
