@@ -11,11 +11,12 @@ import numpy as np
 from itertools import chain
 from visualization import *
 from ConcatDataset import ConcatDataset
-from HiddenPrints import HiddenPrints
+from helper import *
 from LeNet_plus_plus import LeNet_plus_plus
 import Data_manager
 from loss import entropic_openset_loss
 from metrics import *
+from advertorch.attacks import PGDAttack
 
 # Get cpu or gpu device for training.
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
@@ -30,7 +31,7 @@ testsamples = 1000
 
 # create Datasets
 # training_data, test_data = Data_manager.mnist_plus_letter(device)
-training_data, test_data = Data_manager.mnist_adversarials(device, trainsamples, testsamples)
+training_data, test_data = Data_manager.mnist_adversarials(device)
 # training_data, test_data = Data_manager.Concat_emnist(device)
 # training_data, test_data = Data_manager.mnist_vanilla(device)
 # training_data, test_data = Data_manager.emnist_digits(device)
@@ -53,6 +54,8 @@ loss_fn = entropic_openset_loss()
 # loss_fn = nn.CrossEntropyLoss()
 # loss_fn = nn.Softmax()
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
+
+
 # optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
 
@@ -90,14 +93,9 @@ def train(dataloader, model, loss_fn, optimizer):
         # TODO: idea : add scalar
         # TODO: idea : rotate by a small angle in the direction of gradient (goodfellow)
 
-        # add random perturbation +[-0.1, 0.1] for every pixel for every sample in batch X
-        for idx in range(len(X)):
-            X[idx][0] += torch.rand(X[idx][0].shape, device=device) * 0.2 * random.choice([-1,1])
+        X, y = random_perturbation(X, y)
 
-        y = torch.ones(y.shape, dtype=torch.long, device=device) * -1
 
-        # plt.imshow(X[0][0].to("cpu"), "gray")
-        # plt.show()
 
         pred, feat = model(X)
 

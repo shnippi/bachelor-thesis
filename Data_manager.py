@@ -2,7 +2,7 @@ from torch.utils.data import DataLoader, random_split, Subset
 from torchvision import datasets
 from torchvision.transforms import ToTensor, Lambda, Compose
 from ConcatDataset import ConcatDataset
-from HiddenPrints import HiddenPrints
+from helper import HiddenPrints
 
 
 def make_subset(device, training_data, test_data, trainsamples=None, testsamples=None):
