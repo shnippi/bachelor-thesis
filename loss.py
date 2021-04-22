@@ -14,6 +14,10 @@ class entropic_openset_loss():
         # logit_values --> tensor with #batchsize samples, per sample 10 values with logits for each class.
         # target f.e. tensor([0, 4, 1, 9, 2]) with len = batchsize
 
+        # check if logit_values is tuple --> model returned x,y (x : preditctions, y : features)
+        if isinstance(logit_values,tuple):
+            logit_values = logit_values[0]
+
         categorical_targets = torch.zeros(logit_values.shape).to(
             self.device)  # tensor with size (batchsize, #classes), all logits to 0
         known_indexes = target != -1  # list of bools for the known classes

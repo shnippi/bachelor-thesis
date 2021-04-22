@@ -88,14 +88,26 @@ def train(dataloader, model, loss_fn, optimizer):
         # Backpropagation
         loss.backward()
 
+        plt.imshow(X[0][0].to("cpu"), "gray")
+        plt.show()
+
         # TODO: add rauschen here (with pred and loss again of the new sample) like training twice in the loop
         # TODO: idea : multiply scalar
         # TODO: idea : add scalar
         # TODO: idea : rotate by a small angle in the direction of gradient (goodfellow)
 
-        X, y = random_perturbation(X, y)
+        # X, y = random_perturbation(X, y)
 
+        adversary = PGDAttack(
+            model, loss_fn=loss_fn, eps=0.15,
+            nb_iter=40, eps_iter=0.01, rand_init=True, clip_min=0.0, clip_max=1.0,
+            targeted=False)
 
+        X = adversary.perturb(X,y)
+        y = torch.ones(y.shape, dtype=torch.long, device=device) * -1
+
+        plt.imshow(X[0][0].to("cpu"), "gray")
+        plt.show()
 
         pred, feat = model(X)
 
