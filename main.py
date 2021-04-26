@@ -25,7 +25,7 @@ print("Using {} device".format(device))
 # Hyperparameters
 batch_size = 128 if torch.cuda.is_available() else 4
 epochs = 500 if torch.cuda.is_available() else 1
-learning_rate = 0.005
+learning_rate = 0.01
 trainsamples = 5000
 testsamples = 1000
 
@@ -37,8 +37,8 @@ training_data, test_data = Data_manager.mnist_adversarials(device)
 # training_data, test_data = Data_manager.emnist_digits(device)
 
 # Create data loaders.
-train_dataloader = DataLoader(training_data, batch_size=batch_size)
-test_dataloader = DataLoader(test_data, batch_size=batch_size)
+train_dataloader = DataLoader(training_data, batch_size=batch_size, shuffle=True)
+test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=True)
 
 # see what dimensions the input is
 for X, y in test_dataloader:
@@ -100,7 +100,7 @@ def train(dataloader, model, loss_fn, optimizer):
 
         adversary = PGDAttack(
             model, loss_fn=loss_fn, eps=0.15,
-            nb_iter=10, eps_iter=0.01, rand_init=True, clip_min=0.0, clip_max=1.0,
+            nb_iter=1, eps_iter=0.1, rand_init=True, clip_min=0.0, clip_max=1.0,
             targeted=False)
 
         X = adversary.perturb(X,y)

@@ -33,7 +33,6 @@ class entropic_openset_loss():
         loss = negative_log_values * categorical_targets  # puts the -log-values at index for each sample (rest is 0)
         # why is there a mean here? --> doesnt matter, leave it. just pump up learning rate
         sample_loss = torch.mean(loss, dim=1)
-        # sample_loss = torch.max(loss, dim=1).values
         # print(logit_values)
         # print(target)
         # print(known_indexes)
@@ -42,9 +41,6 @@ class entropic_openset_loss():
         # print(log_values)
         # print(loss)
         # print(sample_loss)
-        for i in range(len(sample_loss)):
-            if known_indexes[i]:
-                sample_loss[i] *= 10
 
         # print(sample_loss)
         if sample_weights is not None:
