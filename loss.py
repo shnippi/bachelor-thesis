@@ -1,10 +1,12 @@
 import torch
 from torch.nn import functional as F
 
+device = "cuda:5" if torch.cuda.is_available() else "cpu"
+
 
 class entropic_openset_loss():
     def __init__(self, num_of_classes=10):
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.device = device
         self.num_of_classes = num_of_classes
         self.eye = torch.eye(self.num_of_classes).to(self.device)
         self.ones = torch.ones(self.num_of_classes).to(self.device)

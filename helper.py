@@ -3,7 +3,7 @@ import torch
 from matplotlib import pyplot as plt
 from numpy import random
 
-device = "cuda:0" if torch.cuda.is_available() else "cpu"
+device = "cuda:5" if torch.cuda.is_available() else "cpu"
 
 
 class HiddenPrints:

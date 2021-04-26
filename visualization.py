@@ -1,6 +1,8 @@
 import numpy as np
 import itertools
 from matplotlib import pyplot as plt
+from pathlib import Path
+
 
 # Source for distinct colors https://sashat.me/2017/01/11/list-of-20-simple-distinct-colors/
 colors = np.array([
@@ -36,9 +38,10 @@ def simplescatter(features, classes, c=("b", "g", "r", "c", "m", "y", "orange", 
         plt.scatter(*zip(*(features[i])), c=c[i], s=s)
 
     plt.legend(range(classes))
-
+    Path("/my/directory").mkdir(parents=True, exist_ok=True)
+    plt.savefig("plots/flower.png")
     plt.show()
-
+    plt.clf()
 
 def plot_histogram(pos_features, neg_features, pos_labels='Knowns', neg_labels='Unknowns', title="Histogram",
                    file_name='{}foo.pdf'):

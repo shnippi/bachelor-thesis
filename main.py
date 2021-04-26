@@ -19,19 +19,19 @@ from metrics import *
 from advertorch.attacks import PGDAttack
 
 # Get cpu or gpu device for training.
-device = "cuda:0" if torch.cuda.is_available() else "cpu"
+device = "cuda:5" if torch.cuda.is_available() else "cpu"
 print("Using {} device".format(device))
 
 # Hyperparameters
 batch_size = 128 if torch.cuda.is_available() else 4
-epochs = 500 if torch.cuda.is_available() else 1
+epochs = 500 if torch.cuda.is_available() else 5
 learning_rate = 0.01
 trainsamples = 5000
 testsamples = 1000
 
 # create Datasets
-# training_data, test_data = Data_manager.mnist_plus_letter(device)
-training_data, test_data = Data_manager.mnist_adversarials(device)
+training_data, test_data = Data_manager.mnist_plus_letter(device, trainsamples, testsamples)
+# training_data, test_data = Data_manager.mnist_adversarials(device)
 # training_data, test_data = Data_manager.Concat_emnist(device)
 # training_data, test_data = Data_manager.mnist_vanilla(device)
 # training_data, test_data = Data_manager.emnist_digits(device)
@@ -98,24 +98,24 @@ def train(dataloader, model, loss_fn, optimizer):
 
         # X, y = random_perturbation(X, y)
 
-        adversary = PGDAttack(
-            model, loss_fn=loss_fn, eps=0.15,
-            nb_iter=1, eps_iter=0.1, rand_init=True, clip_min=0.0, clip_max=1.0,
-            targeted=False)
-
-        X = adversary.perturb(X,y)
-        y = torch.ones(y.shape, dtype=torch.long, device=device) * -1
-
-        # plt.imshow(X[0][0].to("cpu"), "gray")
-        # plt.show()
-
-        pred, feat = model(X)
-
-        # print(pred)
-        # print(y)
-
-        loss = loss_fn(pred, y)
-        loss.backward()
+        # adversary = PGDAttack(
+        #     model, loss_fn=loss_fn, eps=0.15,
+        #     nb_iter=1, eps_iter=0.1, rand_init=True, clip_min=0.0, clip_max=1.0,
+        #     targeted=False)
+        #
+        # X = adversary.perturb(X,y)
+        # y = torch.ones(y.shape, dtype=torch.long, device=device) * -1
+        #
+        # # plt.imshow(X[0][0].to("cpu"), "gray")
+        # # plt.show()
+        #
+        # pred, feat = model(X)
+        #
+        # # print(pred)
+        # # print(y)
+        #
+        # loss = loss_fn(pred, y)
+        # loss.backward()
 
         optimizer.step()
 
