@@ -1,7 +1,11 @@
+import os
 import torch
 from torch.nn import functional as F
+from dotenv import load_dotenv
 
-device = "cuda:5" if torch.cuda.is_available() else "cpu"
+load_dotenv()
+
+device = os.environ.get('DEVICE') if torch.cuda.is_available() else "cpu"
 
 
 class entropic_openset_loss():
@@ -17,7 +21,7 @@ class entropic_openset_loss():
         # target f.e. tensor([0, 4, 1, 9, 2]) with len = batchsize
 
         # check if logit_values is tuple --> model returned x,y (x : preditctions, y : features)
-        if isinstance(logit_values,tuple):
+        if isinstance(logit_values, tuple):
             logit_values = logit_values[0]
 
         categorical_targets = torch.zeros(logit_values.shape).to(

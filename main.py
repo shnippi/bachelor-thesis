@@ -12,14 +12,17 @@ from itertools import chain
 from visualization import *
 from ConcatDataset import ConcatDataset
 from helper import *
+from attacks import *
 from LeNet_plus_plus import LeNet_plus_plus
 import Data_manager
 from loss import entropic_openset_loss
 from metrics import *
 from advertorch.attacks import PGDAttack
+from dotenv import load_dotenv
+load_dotenv()
 
 # Get cpu or gpu device for training.
-device = "cuda:5" if torch.cuda.is_available() else "cpu"
+device = os.environ.get('DEVICE') if torch.cuda.is_available() else "cpu"
 print("Using {} device".format(device))
 
 # Hyperparameters
@@ -30,8 +33,8 @@ trainsamples = 5000
 testsamples = 1000
 
 # create Datasets
-training_data, test_data = Data_manager.mnist_plus_letter(device, trainsamples, testsamples)
-# training_data, test_data = Data_manager.mnist_adversarials(device)
+# training_data, test_data = Data_manager.mnist_plus_letter(device)
+training_data, test_data = Data_manager.mnist_adversarials(device)
 # training_data, test_data = Data_manager.Concat_emnist(device)
 # training_data, test_data = Data_manager.mnist_vanilla(device)
 # training_data, test_data = Data_manager.emnist_digits(device)
@@ -96,26 +99,26 @@ def train(dataloader, model, loss_fn, optimizer):
         # TODO: idea : add scalar
         # TODO: idea : rotate by a small angle in the direction of gradient (goodfellow)
 
-        # X, y = random_perturbation(X, y)
+        X, y = random_perturbation(X, y)
 
-        # adversary = PGDAttack(
-        #     model, loss_fn=loss_fn, eps=0.15,
-        #     nb_iter=1, eps_iter=0.1, rand_init=True, clip_min=0.0, clip_max=1.0,
-        #     targeted=False)
-        #
-        # X = adversary.perturb(X,y)
-        # y = torch.ones(y.shape, dtype=torch.long, device=device) * -1
-        #
-        # # plt.imshow(X[0][0].to("cpu"), "gray")
-        # # plt.show()
-        #
-        # pred, feat = model(X)
-        #
-        # # print(pred)
-        # # print(y)
-        #
-        # loss = loss_fn(pred, y)
-        # loss.backward()
+        adversary = PGDAttack(
+            model, loss_fn=loss_fn, eps=0.15,
+            nb_iter=1, eps_iter=0.1, rand_init=True, clip_min=0.0, clip_max=1.0,
+            targeted=False)
+
+        X = adversary.perturb(X,y)
+        y = torch.ones(y.shape, dtype=torch.long, device=device) * -1
+
+        # plt.imshow(X[0][0].to("cpu"), "gray")
+        # plt.show()
+
+        pred, feat = model(X)
+
+        # print(pred)
+        # print(y)
+
+        loss = loss_fn(pred, y)
+        loss.backward()
 
         optimizer.step()
 
