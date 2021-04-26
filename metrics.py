@@ -3,7 +3,7 @@ import torch
 """This file contains different metrics that can be applied to evaluate the training"""
 
 
-def accuracy(prediction, target):
+def accuracy_known(prediction, target):
     """Computes the classification accuracy of the classifier based on known samples only.
   Any target that does not belong to a certain class (target is -1) is disregarded.
 

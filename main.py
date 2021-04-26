@@ -1,24 +1,14 @@
 import torch
-from numpy import random
-from torch import nn
 from torch.utils.data import DataLoader, random_split, Subset
-from torchvision import datasets
-from torchvision.transforms import ToTensor, Lambda, Compose
-import matplotlib.pyplot as plt
-import pytorch_lightning as pl
-from torch.nn import functional as F
-import numpy as np
-from itertools import chain
 from visualization import *
-from ConcatDataset import ConcatDataset
 from helper import *
 from attacks import *
 from LeNet_plus_plus import LeNet_plus_plus
 import Data_manager
 from loss import entropic_openset_loss
 from metrics import *
-from advertorch.attacks import PGDAttack
 from dotenv import load_dotenv
+
 load_dotenv()
 
 # Get cpu or gpu device for training.
@@ -91,26 +81,10 @@ def train(dataloader, model, loss_fn, optimizer):
         # Backpropagation
         loss.backward()
 
-        # plt.imshow(X[0][0].to("cpu"), "gray")
-        # plt.show()
+        # TODO: add adversaries and rauschen
 
-        # TODO: add rauschen here (with pred and loss again of the new sample) like training twice in the loop
-        # TODO: idea : multiply scalar
-        # TODO: idea : add scalar
-        # TODO: idea : rotate by a small angle in the direction of gradient (goodfellow)
-
-        X, y = random_perturbation(X, y)
-
-        adversary = PGDAttack(
-            model, loss_fn=loss_fn, eps=0.15,
-            nb_iter=1, eps_iter=0.1, rand_init=True, clip_min=0.0, clip_max=1.0,
-            targeted=False)
-
-        X = adversary.perturb(X,y)
-        y = torch.ones(y.shape, dtype=torch.long, device=device) * -1
-
-        # plt.imshow(X[0][0].to("cpu"), "gray")
-        # plt.show()
+        # X, y = random_perturbation(X, y)
+        X, y = PGD_attack(X, y, model, loss_fn)
 
         pred, feat = model(X)
 
@@ -137,6 +111,7 @@ def test(dataloader, model):
 
     model.eval()
     test_loss, conf, correct = 0, 0, 0
+    acc_known = torch.tensor((1,2))
     with torch.no_grad():  # dont need the backward prop
         # iterating over every batch
         for X, y in dataloader:
@@ -145,12 +120,13 @@ def test(dataloader, model):
             test_loss += loss_fn(pred, y).item()
             # TODO: check if confidence is correct
             conf += confidence(pred, y)
+            acc_known += accuracy_known(pred, y)
             correct += (pred.argmax(1) == y).type(torch.float).sum().item()
 
             # put the 2dfeatures for every sample in the correct sublist according to their true label(index)
             # -1 --> last sublist
             ylist = y.to("cpu").detach().tolist()
-            for i in range(len(y) - 1):
+            for i in range(len(y)):
                 features[ylist[i]].append(feat.to("cpu").detach().tolist()[i])
 
     # plot the features with #classes
@@ -159,8 +135,10 @@ def test(dataloader, model):
     test_loss /= n_batches
     correct /= size
     conf /= n_batches
+    # TODO: take accuracy of only the knowns
     # print(f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
-    print(f"Test Error: \n Confidence: {conf * 100:>0.1f}%, Avg loss: {test_loss:>8f} \n")
+    print(f"Test Error: \n Confidence: {conf * 100:>0.1f}%, acc_known: {acc_known[0]/acc_known[1] * 100:>0.1f}%, "
+          f"Avg loss: {test_loss:>8f} \n")
 
 
 if __name__ == '__main__':
