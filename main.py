@@ -164,12 +164,13 @@ if __name__ == '__main__':
 
     for eps in eps_list:
         for eps_iter in eps_iter_list:
-            # make a new model every time (otherwise it will stack)
+            # TODO: FIX THIS . make a new model every time (otherwise it will stack)
+            # TODO: SOMETHING GOT FUCKED IN THE LAST COMMIT
             new_model = LeNet_plus_plus().to(device)
 
             for t in range(epochs):
                 print(f"Epoch {t + 1}, eps: {eps}, eps_iter: {eps_iter}\n-------------------------------")
-                train(train_dataloader, new_model, loss_fn, optimizer, eps, eps_iter)
-                test(test_dataloader, new_model, t + 1, eps, eps_iter)
+                train(train_dataloader, model, loss_fn, optimizer, eps, eps_iter)
+                test(test_dataloader, model, t + 1, eps, eps_iter)
 
     print("Done!")
