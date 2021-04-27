@@ -43,23 +43,38 @@ def simplescatter(features, classes, c=("b", "g", "r", "c", "m", "y", "orange", 
     if not os.path.exists('./plots'):
         os.makedirs('./plots')
 
-    plt.savefig("plots/flower.png", dpi=1200)
+    plt.savefig("plots/flower.png", dpi=600)
     plt.show()
     plt.clf()
 
 
-def epsilon_plot(eps_tensor, eps, eps_iter):
+def epsilon_plot(eps_tensor, eps_list, eps_iter_list):
     plt.figure(2)
     # pull out the 3rd (depth) dimension of the tensor. Now for every eps-eps_iter pair theres a list with
     # confidences over all epochs
     confidences = eps_tensor.reshape(len(eps_tensor), -1).transpose(0, 1)
-    print(eps_tensor)
-    print(confidences)
-    for i in confidences:
-        plt.plot(i)
+    max_conf = 0
+
+    # print(confidences)
+
+    for i in range(len(confidences)):
+        eps_index = i // len(eps_iter_list)
+        eps_iter_index = i % len(eps_iter_list)
+        if confidences[i][-1] > max_conf:
+            plt.plot(confidences[i], label=f"eps: {eps_list[eps_index]}, eps_iter: {eps_iter_list[eps_iter_index]}")
+            max_conf = confidences[i][-1]
+        else:
+            plt.plot(confidences[i])
 
     plt.xlabel("epochs")
     plt.ylabel("confidence")
+    plt.legend()
+
+
+
+    if not os.path.exists('./plots'):
+        os.makedirs('./plots')
+    plt.savefig("plots/epsilons.png")
     plt.show()
 
 

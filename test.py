@@ -1,17 +1,12 @@
 import torch
-
-shape = (2,2,2)
-
-tenni = torch.reshape(torch.arange(8), shape)
+import pylab
 
 
 
 
-print(tenni)
-
-# testenni= torch.index_select(tenni,2,torch.tensor([0]))
-
-testenni=tenni.reshape(2,-1).transpose(0,1)
-
-print(testenni)
-
+fig = pylab.figure()
+figlegend = pylab.figure(figsize=(3,2))
+ax = fig.add_subplot(111)
+lines = ax.plot(range(10), pylab.randn(10), range(10), pylab.randn(10))
+figlegend.legend(lines, ('one', 'two'), 'center')
+fig.show()

@@ -17,7 +17,7 @@ print("Using {} device".format(device))
 
 # Hyperparameters
 batch_size = 128 if torch.cuda.is_available() else 4
-epochs = 5 if torch.cuda.is_available() else 5
+epochs = 3 if torch.cuda.is_available() else 5
 learning_rate = 0.01
 trainsamples = 5000
 testsamples = 1000
@@ -142,12 +142,13 @@ def test(dataloader, model, current_epoch=None, eps=None, eps_iter=None):
 
     # plot the features with #classes
     simplescatter(features, 11)
-    # plot epsilons
+
+    # update and plot epsilons
     if eps and eps_iter:
         eps_tensor[current_epoch-1][eps_list.index(eps)][eps_iter_list.index(eps_iter)] = conf.item()
         print(eps_tensor)
         if current_epoch == epochs:
-            epsilon_plot(eps_tensor, eps, eps_iter)
+            epsilon_plot(eps_tensor, eps_list, eps_iter_list)
 
     # TODO: take accuracy of only the knowns
     # print(f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
