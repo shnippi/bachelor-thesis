@@ -70,8 +70,6 @@ def epsilon_plot(eps_tensor, eps_list, eps_iter_list):
     plt.ylabel("confidence")
     plt.legend()
 
-
-
     if not os.path.exists('./plots'):
         os.makedirs('./plots')
     plt.savefig("plots/epsilons.png")
