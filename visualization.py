@@ -33,6 +33,7 @@ colors = colors / 255.
 
 def simplescatter(features, classes, c=("b", "g", "r", "c", "m", "y", "orange", "lawngreen", "peru", "deeppink", "k"),
                   s=0.1):
+    plt.figure(1)
     # scatterplot every digit to a color
     for i in range(classes):
         plt.scatter(*zip(*(features[i])), c=c[i], s=s)
@@ -45,6 +46,21 @@ def simplescatter(features, classes, c=("b", "g", "r", "c", "m", "y", "orange", 
     plt.savefig("plots/flower.png", dpi=1200)
     plt.show()
     plt.clf()
+
+
+def epsilon_plot(eps_tensor, eps, eps_iter):
+    plt.figure(2)
+    # pull out the 3rd (depth) dimension of the tensor. Now for every eps-eps_iter pair theres a list with
+    # confidences over all epochs
+    confidences = eps_tensor.reshape(len(eps_tensor), -1).transpose(0, 1)
+    print(eps_tensor)
+    print(confidences)
+    for i in confidences:
+        plt.plot(i)
+
+    plt.xlabel("epochs")
+    plt.ylabel("confidence")
+    plt.show()
 
 
 def plot_histogram(pos_features, neg_features, pos_labels='Knowns', neg_labels='Unknowns', title="Histogram",
