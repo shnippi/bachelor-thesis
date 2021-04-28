@@ -76,6 +76,16 @@ def epsilon_plot(eps_tensor, eps_list, eps_iter_list):
     plt.show()
 
 
+def epsilon_table(eps_tensor, eps_list, eps_iter_list):
+    data = eps_tensor[-1]
+    print(data)
+    columns = eps_iter_list
+    rows = eps_list
+
+    plt.table(cellText=data, rowLabels=rows, colLabels=columns, loc="center")
+    plt.show()
+
+
 def plot_histogram(pos_features, neg_features, pos_labels='Knowns', neg_labels='Unknowns', title="Histogram",
                    file_name='{}foo.pdf'):
     """

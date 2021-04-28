@@ -17,14 +17,14 @@ print("Using {} device".format(device))
 
 # Hyperparameters
 batch_size = 128 if torch.cuda.is_available() else 4
-epochs = 10 if torch.cuda.is_available() else 5
+epochs = 3 if torch.cuda.is_available() else 5
 learning_rate = 0.01
 trainsamples = 5000
 testsamples = 1000
 
 # create Datasets
 # training_data, test_data = Data_manager.mnist_plus_letter(device)
-training_data, test_data = Data_manager.mnist_adversarials(device)
+training_data, test_data = Data_manager.mnist_adversarials(device, trainsamples, testsamples)
 # training_data, test_data = Data_manager.Concat_emnist(device)
 # training_data, test_data = Data_manager.mnist_vanilla(device)
 # training_data, test_data = Data_manager.emnist_digits(device)
@@ -149,6 +149,7 @@ def test(dataloader, model, current_epoch=None, eps=None, eps_iter=None):
 
         if current_epoch == epochs:
             epsilon_plot(eps_tensor, eps_list, eps_iter_list)
+            epsilon_table(eps_tensor, eps_list, eps_iter_list)
 
     # TODO: take accuracy of only the knowns
     # print(f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
@@ -164,13 +165,13 @@ if __name__ == '__main__':
 
     for eps in eps_list:
         for eps_iter in eps_iter_list:
-            # TODO: FIX THIS . make a new model every time (otherwise it will stack)
-            # TODO: SOMETHING GOT FUCKED IN THE LAST COMMIT
+
             new_model = LeNet_plus_plus().to(device)
+            new_optimizer = torch.optim.SGD(new_model.parameters(), lr=learning_rate, momentum=0.9)
 
             for t in range(epochs):
                 print(f"Epoch {t + 1}, eps: {eps}, eps_iter: {eps_iter}\n-------------------------------")
-                train(train_dataloader, model, loss_fn, optimizer, eps, eps_iter)
-                test(test_dataloader, model, t + 1, eps, eps_iter)
+                train(train_dataloader, new_model, loss_fn, new_optimizer, eps, eps_iter)
+                test(test_dataloader, new_model, t + 1, eps, eps_iter)
 
     print("Done!")
