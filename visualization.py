@@ -3,7 +3,6 @@ import itertools
 from matplotlib import pyplot as plt
 import os
 
-# Source for distinct colors https://sashat.me/2017/01/11/list-of-20-simple-distinct-colors/
 colors = np.array([
     [230, 25, 75],
     [60, 180, 75],
@@ -77,12 +76,27 @@ def epsilon_plot(eps_tensor, eps_list, eps_iter_list):
 
 
 def epsilon_table(eps_tensor, eps_list, eps_iter_list):
-    data = eps_tensor[-1]
-    print(data)
+    plt.figure(figsize=(6, 4), dpi=800)
+
+    data = eps_tensor[-1].cpu().detach().numpy()
+    max_idx = np.unravel_index(data.argmax(), data.shape)
+
+    cell_colors = np.full(data.shape, "w")
+    cell_colors[max_idx[0]][max_idx[1]] = "g"
+
     columns = eps_iter_list
     rows = eps_list
 
-    plt.table(cellText=data, rowLabels=rows, colLabels=columns, loc="center")
+    plt.axis('tight')
+    plt.axis('off')
+
+    plt.title("confidences")
+
+    plt.table(cellText=data, rowLabels=rows, colLabels=columns, loc="center", cellColours=cell_colors)
+
+    if not os.path.exists('./plots'):
+        os.makedirs('./plots')
+    plt.savefig("plots/table.png")
     plt.show()
 
 
