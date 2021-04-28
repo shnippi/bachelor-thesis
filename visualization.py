@@ -56,6 +56,8 @@ def epsilon_plot(eps_tensor, eps_list, eps_iter_list):
 
     # print(confidences)
 
+    # TODO: fix the legend
+
     for i in range(len(confidences)):
         eps_index = i // len(eps_iter_list)
         eps_iter_index = i % len(eps_iter_list)
@@ -67,7 +69,7 @@ def epsilon_plot(eps_tensor, eps_list, eps_iter_list):
 
     plt.xlabel("epochs")
     plt.ylabel("confidence")
-    plt.legend()
+    # plt.legend()
 
     if not os.path.exists('./plots'):
         os.makedirs('./plots')

@@ -3,11 +3,15 @@ import os
 from numpy import random
 from matplotlib import pyplot as plt
 from dotenv import load_dotenv
-from advertorch.attacks import PGDAttack
+from advertorch.attacks import PGDAttack, GradientSignAttack, CarliniWagnerL2Attack
 
 load_dotenv()
 
 device = os.environ.get('DEVICE') if torch.cuda.is_available() else "cpu"
+
+
+# TODO: GAUSSIAN NOISE?
+# TODO: ROTATE BY SMALL ANGLE IN DIRECTION OF GRADIENT (GOODFELLOW)
 
 
 def random_perturbation(X, y):
@@ -34,5 +38,29 @@ def PGD_attack(X, y, model, loss_fn, eps=0.15, eps_iter=0.1):
 
     # plt.imshow(X[0][0].to("cpu"), "gray")
     # plt.show()
+
+    return X, y
+
+
+def FGSM_attack(X, y, model, loss_fn, eps=0.15, eps_iter=0.1):
+    adversary = GradientSignAttack(model, loss_fn=loss_fn, eps=eps, targeted=False)
+
+    X = adversary.perturb(X, y)
+    y = torch.ones(y.shape, dtype=torch.long, device=device) * -1
+
+    # plt.imshow(X[0][0].to("cpu"), "gray")
+    # plt.show()
+
+    return X, y
+
+# TODO: fix this
+def CnW_attack(X, y, model, loss_fn, eps=0.15, eps_iter=0.1, num_classes=10):
+    adversary = CarliniWagnerL2Attack(model, num_classes, loss_fn=loss_fn)
+
+    X = adversary.perturb(X, y)
+    y = torch.ones(y.shape, dtype=torch.long, device=device) * -1
+
+    plt.imshow(X[0][0].to("cpu"), "gray")
+    plt.show()
 
     return X, y

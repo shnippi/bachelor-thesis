@@ -17,14 +17,14 @@ print("Using {} device".format(device))
 
 # Hyperparameters
 batch_size = 128 if torch.cuda.is_available() else 4
-epochs = 3 if torch.cuda.is_available() else 5
+epochs = 10 if torch.cuda.is_available() else 5
 learning_rate = 0.01
 trainsamples = 5000
 testsamples = 1000
 
 # create Datasets
 # training_data, test_data = Data_manager.mnist_plus_letter(device)
-training_data, test_data = Data_manager.mnist_adversarials(device, trainsamples, testsamples)
+training_data, test_data = Data_manager.mnist_adversarials(device)
 # training_data, test_data = Data_manager.Concat_emnist(device)
 # training_data, test_data = Data_manager.mnist_vanilla(device)
 # training_data, test_data = Data_manager.emnist_digits(device)
@@ -81,18 +81,23 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
         # Backpropagation
         loss.backward()
 
-        # TODO: add adversaries and rauschen (rotate in direction of gradient)
+        # TODO: add adversarials and rauschen
+        # //----------- adversarial stuff----------------------
 
-        # X, y = random_perturbation(X, y)
-        X, y = PGD_attack(X, y, model, loss_fn, eps, eps_iter)
+        # # X, y = random_perturbation(X, y)
+        # X, y = PGD_attack(X, y, model, loss_fn, eps, eps_iter)
+        # # X, y = FGSM_attack(X, y, model, loss_fn)
+        # # X, y = CnW_attack(X, y, model, loss_fn)
+        #
+        # pred, feat = model(X)
+        #
+        # # print(pred)
+        # # print(y)
+        #
+        # loss = loss_fn(pred, y)
+        # loss.backward()
 
-        pred, feat = model(X)
-
-        # print(pred)
-        # print(y)
-
-        loss = loss_fn(pred, y)
-        loss.backward()
+        # --------------------------------------------------//
 
         optimizer.step()
 
@@ -125,7 +130,6 @@ def test(dataloader, model, current_epoch=None, eps=None, eps_iter=None):
             X, y = X.to(device), y.to(device)
             pred, feat = model(X)
             test_loss += loss_fn(pred, y).item()
-            # TODO: check if confidence is correct
             conf += confidence(pred, y)
             acc_known += accuracy_known(pred, y)
             correct += (pred.argmax(1) == y).type(torch.float).sum().item()
@@ -143,35 +147,35 @@ def test(dataloader, model, current_epoch=None, eps=None, eps_iter=None):
     # plot the features with #classes
     simplescatter(features, 11)
 
-    # update and plot epsilons
+    # store conf, update and plot epsilons if given
     if eps and eps_iter:
-        eps_tensor[current_epoch-1][eps_list.index(eps)][eps_iter_list.index(eps_iter)] = conf.item()
+        eps_tensor[current_epoch - 1][eps_list.index(eps)][eps_iter_list.index(eps_iter)] = conf.item()
 
         if current_epoch == epochs:
             epsilon_plot(eps_tensor, eps_list, eps_iter_list)
             epsilon_table(eps_tensor, eps_list, eps_iter_list)
 
-    # TODO: take accuracy of only the knowns
     # print(f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
     print(f"Test Error: \n Confidence: {conf * 100:>0.1f}%, acc_known: {acc_known[0] / acc_known[1] * 100:>0.1f}%, "
           f"Avg loss: {test_loss:>8f} \n")
 
 
 if __name__ == '__main__':
-    # for t in range(epochs):
-    #     print(f"Epoch {t + 1}\n-------------------------------")
-    #     train(train_dataloader, model, loss_fn, optimizer)
-    #     test(test_dataloader, model)
+    for t in range(epochs):
+        print(f"Epoch {t + 1}\n-------------------------------")
+        train(train_dataloader, model, loss_fn, optimizer)
+        test(test_dataloader, model)
 
-    for eps in eps_list:
-        for eps_iter in eps_iter_list:
-
-            new_model = LeNet_plus_plus().to(device)
-            new_optimizer = torch.optim.SGD(new_model.parameters(), lr=learning_rate, momentum=0.9)
-
-            for t in range(epochs):
-                print(f"Epoch {t + 1}, eps: {eps}, eps_iter: {eps_iter}\n-------------------------------")
-                train(train_dataloader, new_model, loss_fn, new_optimizer, eps, eps_iter)
-                test(test_dataloader, new_model, t + 1, eps, eps_iter)
+    # for eps in eps_list:
+    #     for eps_iter in eps_iter_list:
+    #         #TODO: maybe toggle plot.show with an env variable for lower mem usage?
+    #
+    #         new_model = LeNet_plus_plus().to(device)
+    #         new_optimizer = torch.optim.SGD(new_model.parameters(), lr=learning_rate, momentum=0.9)
+    #
+    #         for t in range(epochs):
+    #             print(f"Epoch {t + 1}, eps: {eps}, eps_iter: {eps_iter}\n-------------------------------")
+    #             train(train_dataloader, new_model, loss_fn, new_optimizer, eps, eps_iter)
+    #             test(test_dataloader, new_model, t + 1, eps, eps_iter)
 
     print("Done!")
