@@ -43,7 +43,8 @@ def simplescatter(features, classes, c=("b", "g", "r", "c", "m", "y", "orange", 
         os.makedirs('./plots')
 
     plt.savefig("plots/flower.png", dpi=600)
-    plt.show()
+    if os.environ.get('PLOT') == "t":
+        plt.show()
     plt.clf()
 
 
@@ -74,7 +75,9 @@ def epsilon_plot(eps_tensor, eps_list, eps_iter_list):
     if not os.path.exists('./plots'):
         os.makedirs('./plots')
     plt.savefig("plots/epsilons.png")
-    plt.show()
+    if os.environ.get('PLOT') == "t":
+        plt.show()
+    plt.clf()
 
 
 def epsilon_table(eps_tensor, eps_list, eps_iter_list):
@@ -99,7 +102,9 @@ def epsilon_table(eps_tensor, eps_list, eps_iter_list):
     if not os.path.exists('./plots'):
         os.makedirs('./plots')
     plt.savefig("plots/table.png")
-    plt.show()
+    if os.environ.get('PLOT') == "t":
+        plt.show()
+    plt.clf()
 
 
 def plot_histogram(pos_features, neg_features, pos_labels='Knowns', neg_labels='Unknowns', title="Histogram",
@@ -124,6 +129,7 @@ def plot_histogram(pos_features, neg_features, pos_labels='Knowns', neg_labels='
     if title is not None:
         plt.title(title)
     plt.savefig(file_name.format('Hist', 'pdf'), bbox_inches='tight')
+
     plt.show()
 
 
