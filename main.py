@@ -25,7 +25,7 @@ testsamples = 1000
 
 # create Datasets
 # training_data, test_data = Data_manager.mnist_plus_letter(device)
-training_data, test_data = Data_manager.mnist_adversarials(device, trainsamples, testsamples)
+training_data, test_data = Data_manager.mnist_adversarials(device)
 # training_data, test_data = Data_manager.Concat_emnist(device)
 # training_data, test_data = Data_manager.mnist_vanilla(device)
 # training_data, test_data = Data_manager.emnist_digits(device)
@@ -180,7 +180,8 @@ if __name__ == '__main__':
                 new_optimizer = torch.optim.SGD(new_model.parameters(), lr=learning_rate, momentum=0.9)
 
                 for t in range(epochs):
-                    print(f"Epoch {t + 1}, eps: {eps}, eps_iter: {eps_iter}\n-------------------------------")
+                    print(f"Epoch {t + 1}, eps: {eps}, eps_iter: {eps_iter}, iter: {iteration}\n"
+                          f"------------------------------------------")
                     train(train_dataloader, new_model, loss_fn, new_optimizer, eps, eps_iter)
                     test(test_dataloader, new_model, iteration + 1, t + 1, eps, eps_iter)
 
