@@ -48,14 +48,12 @@ def simplescatter(features, classes, c=("b", "g", "r", "c", "m", "y", "orange", 
     plt.clf()
 
 
-def epsilon_plot(eps_tensor, eps_list, eps_iter_list):
+def epsilon_plot(eps_tensor, eps_list, eps_iter_list, iteration=None):
     plt.figure(2)
     # pull out the 3rd (depth) dimension of the tensor. Now for every eps-eps_iter pair theres a list with
     # confidences over all epochs
     confidences = eps_tensor.reshape(len(eps_tensor), -1).transpose(0, 1)
     max_conf = 0
-
-    # print(confidences)
 
     # TODO: fix the legend
 
@@ -74,13 +72,19 @@ def epsilon_plot(eps_tensor, eps_list, eps_iter_list):
 
     if not os.path.exists('./plots'):
         os.makedirs('./plots')
-    plt.savefig("plots/epsilons.png")
+
+    if iteration:
+        plt.savefig(f"plots/epsilons_iter{iteration}.png")
+    else:
+        plt.savefig("plots/epsilons.png")
+
     if os.environ.get('PLOT') == "t":
         plt.show()
     plt.clf()
 
 
-def epsilon_table(eps_tensor, eps_list, eps_iter_list):
+# TODO: make like the max the most saturated and then fading stuff
+def epsilon_table(eps_tensor, eps_list, eps_iter_list, iteration=None):
     plt.figure(figsize=(6, 4), dpi=800)
 
     data = eps_tensor[-1].cpu().detach().numpy()
@@ -101,7 +105,12 @@ def epsilon_table(eps_tensor, eps_list, eps_iter_list):
 
     if not os.path.exists('./plots'):
         os.makedirs('./plots')
-    plt.savefig("plots/table.png")
+
+    if iteration:
+        plt.savefig(f"plots/table_iter{iteration}.png")
+    else:
+        plt.savefig("plots/table.png")
+
     if os.environ.get('PLOT') == "t":
         plt.show()
     plt.clf()

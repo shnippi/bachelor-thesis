@@ -18,6 +18,7 @@ print("Using {} device".format(device))
 # Hyperparameters
 batch_size = 128 if torch.cuda.is_available() else 4
 epochs = 3 if torch.cuda.is_available() else 5
+iterations = 2
 learning_rate = 0.01
 trainsamples = 5000
 testsamples = 1000
@@ -85,7 +86,7 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
         # //----------- adversarial stuff----------------------
 
         # # X, y = random_perturbation(X, y)
-        # X, y = PGD_attack(X, y, model, loss_fn, eps, eps_iter)
+        X, y = PGD_attack(X, y, model, loss_fn, eps, eps_iter)
         # # X, y = FGSM_attack(X, y, model, loss_fn)
         # # X, y = CnW_attack(X, y, model, loss_fn)
         #
@@ -106,15 +107,15 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
             print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
 
 
-eps_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 0.9]
-eps_iter_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 0.9]
-
-# tensor that stores the confidences for different eps (rows) and eps_iter (columns)
+eps_list = [0.2, 0.3]
+eps_iter_list = [0.1, 0.2]
 eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
+accumulated_eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
+
 
 
 # testing loop
-def test(dataloader, model, current_epoch=None, eps=None, eps_iter=None):
+def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None, eps_iter=None):
     # one nested list for each digit + 1 unknown class
     features = [[], [], [], [], [], [], [], [], [], [], []]
 
@@ -151,9 +152,9 @@ def test(dataloader, model, current_epoch=None, eps=None, eps_iter=None):
     if eps and eps_iter:
         eps_tensor[current_epoch - 1][eps_list.index(eps)][eps_iter_list.index(eps_iter)] = conf.item()
 
-        if current_epoch == epochs:
-            epsilon_plot(eps_tensor, eps_list, eps_iter_list)
-            epsilon_table(eps_tensor, eps_list, eps_iter_list)
+        if current_epoch == epochs:  # only plot on the last epoch
+            epsilon_plot(eps_tensor, eps_list, eps_iter_list, current_iteration)
+            epsilon_table(eps_tensor, eps_list, eps_iter_list, current_iteration)
 
     # print(f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
     print(f"Test Error: \n Confidence: {conf * 100:>0.1f}%, acc_known: {acc_known[0] / acc_known[1] * 100:>0.1f}%, "
@@ -166,17 +167,26 @@ if __name__ == '__main__':
     #     train(train_dataloader, model, loss_fn, optimizer)
     #     test(test_dataloader, model)
 
-    for eps in eps_list:
-        for eps_iter in eps_iter_list:
-            # TODO: maybe toggle plot.show with an env variable for lower mem usage?
-            # TODO: SEEDING
+    for iteration in range(iterations):
+        # tensor that stores the confidences for different eps (rows) and eps_iter (columns)
+        eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
+        for eps in eps_list:
+            for eps_iter in eps_iter_list:
+                # TODO: SEEDING
 
-            new_model = LeNet_plus_plus().to(device)
-            new_optimizer = torch.optim.SGD(new_model.parameters(), lr=learning_rate, momentum=0.9)
+                torch.manual_seed(0)
+                new_model = LeNet_plus_plus().to(device)
+                new_optimizer = torch.optim.SGD(new_model.parameters(), lr=learning_rate, momentum=0.9)
 
-            for t in range(epochs):
-                print(f"Epoch {t + 1}, eps: {eps}, eps_iter: {eps_iter}\n-------------------------------")
-                train(train_dataloader, new_model, loss_fn, new_optimizer, eps, eps_iter)
-                test(test_dataloader, new_model, t + 1, eps, eps_iter)
+                for t in range(epochs):
+                    print(f"Epoch {t + 1}, eps: {eps}, eps_iter: {eps_iter}\n-------------------------------")
+                    train(train_dataloader, new_model, loss_fn, new_optimizer, eps, eps_iter)
+                    test(test_dataloader, new_model, iteration + 1, t + 1, eps, eps_iter)
+
+        accumulated_eps_tensor += eps_tensor
+
+    mean_eps_tensor = accumulated_eps_tensor / iterations
+    epsilon_plot(mean_eps_tensor, eps_list, eps_iter_list)
+    epsilon_table(mean_eps_tensor, eps_list, eps_iter_list)
 
     print("Done!")
