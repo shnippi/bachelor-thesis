@@ -17,8 +17,8 @@ print("Using {} device".format(device))
 
 # Hyperparameters
 batch_size = 128 if torch.cuda.is_available() else 4
-epochs = 3 if torch.cuda.is_available() else 5
-iterations = 2
+epochs = 10 if torch.cuda.is_available() else 5
+iterations = 3
 learning_rate = 0.01
 trainsamples = 5000
 testsamples = 1000
@@ -107,11 +107,10 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
             print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
 
 
-eps_list = [0.2, 0.3]
-eps_iter_list = [0.1, 0.2]
+eps_list = [1.0, 1.1, 1.2]
+eps_iter_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
 accumulated_eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
-
 
 
 # testing loop
@@ -168,13 +167,15 @@ if __name__ == '__main__':
     #     test(test_dataloader, model)
 
     for iteration in range(iterations):
-        # tensor that stores the confidences for different eps (rows) and eps_iter (columns)
+
+        # reset the epsilon tensor
         eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
+
         for eps in eps_list:
             for eps_iter in eps_iter_list:
-                # TODO: SEEDING
 
-                torch.manual_seed(0)
+                # seed dependent on current iteration
+                torch.manual_seed(iteration)
                 new_model = LeNet_plus_plus().to(device)
                 new_optimizer = torch.optim.SGD(new_model.parameters(), lr=learning_rate, momentum=0.9)
 
