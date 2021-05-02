@@ -17,7 +17,7 @@ print("Using {} device".format(device))
 
 # Hyperparameters
 batch_size = 128 if torch.cuda.is_available() else 4
-epochs = 10 if torch.cuda.is_available() else 5
+epochs = 20 if torch.cuda.is_available() else 5
 iterations = 3
 learning_rate = 0.01
 trainsamples = 5000
@@ -160,6 +160,7 @@ def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None
           f"Avg loss: {test_loss:>8f} \n")
 
 
+# TODO: CLOSE THE FIRGURES?
 if __name__ == '__main__':
     # for t in range(epochs):
     #     print(f"Epoch {t + 1}\n-------------------------------")
@@ -180,7 +181,7 @@ if __name__ == '__main__':
                 new_optimizer = torch.optim.SGD(new_model.parameters(), lr=learning_rate, momentum=0.9)
 
                 for t in range(epochs):
-                    print(f"Epoch {t + 1}, eps: {eps}, eps_iter: {eps_iter}, iter: {iteration}\n"
+                    print(f"Epoch {t + 1}, eps: {eps}, eps_iter: {eps_iter}, iter: {iteration + 1}\n"
                           f"------------------------------------------")
                     train(train_dataloader, new_model, loss_fn, new_optimizer, eps, eps_iter)
                     test(test_dataloader, new_model, iteration + 1, t + 1, eps, eps_iter)

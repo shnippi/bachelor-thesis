@@ -53,6 +53,7 @@ def FGSM_attack(X, y, model, loss_fn, eps=0.15, eps_iter=0.1):
 
     return X, y
 
+
 # TODO: fix this
 def CnW_attack(X, y, model, loss_fn, eps=0.15, eps_iter=0.1, num_classes=10):
     adversary = CarliniWagnerL2Attack(model, num_classes, loss_fn=loss_fn)
@@ -60,7 +61,7 @@ def CnW_attack(X, y, model, loss_fn, eps=0.15, eps_iter=0.1, num_classes=10):
     X = adversary.perturb(X, y)
     y = torch.ones(y.shape, dtype=torch.long, device=device) * -1
 
-    plt.imshow(X[0][0].to("cpu"), "gray")
-    plt.show()
+    # plt.imshow(X[0][0].to("cpu"), "gray")
+    # plt.show()
 
     return X, y

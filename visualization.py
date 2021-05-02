@@ -45,8 +45,7 @@ def simplescatter(features, classes, c=("b", "g", "r", "c", "m", "y", "orange", 
     plt.savefig("plots/flower.png", dpi=600)
     if os.environ.get('PLOT') == "t":
         plt.show()
-    plt.clf()
-
+    plt.close()
 
 def epsilon_plot(eps_tensor, eps_list, eps_iter_list, iteration=None):
     plt.figure(2)
@@ -80,7 +79,7 @@ def epsilon_plot(eps_tensor, eps_list, eps_iter_list, iteration=None):
 
     if os.environ.get('PLOT') == "t":
         plt.show()
-    plt.clf()
+    plt.close()
 
 
 # TODO: make like the max the most saturated and then fading stuff
@@ -113,8 +112,7 @@ def epsilon_table(eps_tensor, eps_list, eps_iter_list, iteration=None):
 
     if os.environ.get('PLOT') == "t":
         plt.show()
-    plt.clf()
-
+    plt.close()
 
 def plot_histogram(pos_features, neg_features, pos_labels='Knowns', neg_labels='Unknowns', title="Histogram",
                    file_name='{}foo.pdf'):
@@ -140,6 +138,7 @@ def plot_histogram(pos_features, neg_features, pos_labels='Knowns', neg_labels='
     plt.savefig(file_name.format('Hist', 'pdf'), bbox_inches='tight')
 
     plt.show()
+    plt.close()
 
 
 def plotter_2D(
