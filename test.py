@@ -1,12 +1,7 @@
 import torch
 import pylab
+import numpy as np
 
-
-
-
-fig = pylab.figure()
-figlegend = pylab.figure(figsize=(3,2))
-ax = fig.add_subplot(111)
-lines = ax.plot(range(10), pylab.randn(10), range(10), pylab.randn(10))
-figlegend.legend(lines, ('one', 'two'), 'center')
-fig.show()
+list1 = np.zeros((4, 2), dtype=np.float32)
+print(list1)
+print(list1[[0,1]])
