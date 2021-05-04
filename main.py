@@ -14,6 +14,7 @@ load_dotenv()
 # Get cpu or gpu device for training.
 device = os.environ.get('DEVICE') if torch.cuda.is_available() else "cpu"
 print("Using {} device".format(device))
+print(f"plot: {os.environ.get('PLOT')}, adversary = {os.environ.get('ADVERSARY')}")
 
 # Hyperparameters
 batch_size = 128 if torch.cuda.is_available() else 4
@@ -35,10 +36,10 @@ train_dataloader = DataLoader(training_data, batch_size=batch_size, shuffle=True
 test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=True)
 
 # see what dimensions the input is
-for X, y in test_dataloader:
-    print("Shape of X [N, C, H, W]: ", X.shape)
-    print("Shape of y: ", y.shape, y.dtype)
-    break
+# for X, y in test_dataloader:
+#     print("Shape of X [N, C, H, W]: ", X.shape)
+#     print("Shape of y: ", y.shape, y.dtype)
+#     break
 
 # Define model
 model = LeNet_plus_plus().to(device)
