@@ -159,6 +159,7 @@ def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None
 
 
 # TODO: CLOSE THE FIRGURES?
+# TODO: let the iteartions run in parallel on multiple GPUs?
 if __name__ == '__main__':
     # for t in range(epochs):
     #     print(f"Epoch {t + 1}\n-------------------------------")
