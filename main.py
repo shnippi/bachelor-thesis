@@ -180,7 +180,8 @@ if __name__ == '__main__':
                 new_optimizer = torch.optim.SGD(new_model.parameters(), lr=learning_rate, momentum=0.9)
 
                 for t in range(epochs):
-                    print(f"Epoch {t + 1}, eps: {eps}, eps_iter: {eps_iter}, iter: {iteration + 1}\n"
+                    print(f"Epoch {t + 1} / {epochs}, eps: {eps}, eps_iter: {eps_iter}, "
+                          f"iter: {iteration + 1} / {iterations}\n "
                           f"------------------------------------------")
                     train(train_dataloader, new_model, loss_fn, new_optimizer, eps, eps_iter)
                     test(test_dataloader, new_model, iteration + 1, t + 1, eps, eps_iter)
