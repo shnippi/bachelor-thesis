@@ -48,9 +48,8 @@ model = LeNet_plus_plus().to(device)
 loss_fn = entropic_openset_loss()
 # loss_fn = nn.CrossEntropyLoss()
 # loss_fn = nn.Softmax()
+
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
-
-
 # optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
 
@@ -105,8 +104,8 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
             print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
 
 
-eps_list = [1.0, 1.1, 1.2]
-eps_iter_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+eps_list = [1.1, 1.2, 1.3, 1.4, 1.5]
+eps_iter_list = [0.5, 0.6, 0.7, 0.8, 0.9]
 eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
 accumulated_eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
 
@@ -160,6 +159,7 @@ def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None
 
 # TODO: CLOSE THE FIRGURES?
 # TODO: let the iteartions run in parallel on multiple GPUs?
+# TODO: save the flower of the max/ make better flower save system
 if __name__ == '__main__':
     # for t in range(epochs):
     #     print(f"Epoch {t + 1}\n-------------------------------")
