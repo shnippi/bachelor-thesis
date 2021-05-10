@@ -18,7 +18,7 @@ print(f"plot: {os.environ.get('PLOT')}, adversary = {os.environ.get('ADVERSARY')
 
 # Hyperparameters
 batch_size = 128 if torch.cuda.is_available() else 4
-epochs = 20 if torch.cuda.is_available() else 5
+epochs = 50 if torch.cuda.is_available() else 5
 iterations = 3
 learning_rate = 0.01
 trainsamples = 5000
@@ -50,6 +50,8 @@ loss_fn = entropic_openset_loss()
 # loss_fn = nn.Softmax()
 
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
+
+
 # optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
 
@@ -104,8 +106,9 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
             print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
 
 
-eps_list = [1.1, 1.2, 1.3, 1.4, 1.5]
-eps_iter_list = [0.5, 0.6, 0.7, 0.8, 0.9]
+# eps is upper bound for change of pixel values
+eps_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
+eps_iter_list = eps_list
 eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
 accumulated_eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
 
@@ -166,6 +169,7 @@ if __name__ == '__main__':
     #     train(train_dataloader, model, loss_fn, optimizer)
     #     test(test_dataloader, model)
 
+    # TODO: RUN THIS ON MULTIPLE GPU
     for iteration in range(iterations):
 
         # reset the epsilon tensor
@@ -173,6 +177,10 @@ if __name__ == '__main__':
 
         for eps in eps_list:
             for eps_iter in eps_iter_list:
+
+                # only if eps = eps_iter
+                if eps != eps_iter:
+                    continue
 
                 # seed dependent on current iteration
                 torch.manual_seed(iteration)
