@@ -54,13 +54,20 @@ def FGSM_attack(X, y, model, loss_fn, eps=0.15, eps_iter=0.1):
     return X, y
 
 
-# TODO: fix this
+# TODO: fix this --> the forward function returns a tuple and this messes it up!!
+#  set a flag in forward call for features?
 def CnW_attack(X, y, model, loss_fn, eps=0.15, eps_iter=0.1, num_classes=10):
-    adversary = CarliniWagnerL2Attack(model, num_classes, loss_fn=loss_fn)
+    adversary = CarliniWagnerL2Attack(model.forward, num_classes)
 
-    X = adversary.perturb(X, y)
+    # print(y)
+    # y = y.detach().clone().view(-1, 1)
+    # print(y)
+    # y_one_hot = y.new_zeros((y.size()[0], num_classes)).scatter_(1, y, 1)
+    # print(y_one_hot)
+
+    X = adversary.perturb(X,y)
     y = torch.ones(y.shape, dtype=torch.long, device=device) * -1
-
+    print("hello")
     # plt.imshow(X[0][0].to("cpu"), "gray")
     # plt.show()
 

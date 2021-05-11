@@ -87,9 +87,9 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
         # generate and train on adversaries
         if os.environ.get('ADVERSARY') == "t":
             # X, y = random_perturbation(X, y)
-            X, y = PGD_attack(X, y, model, loss_fn, eps, eps_iter)
+            # X, y = PGD_attack(X, y, model, loss_fn, eps, eps_iter)
             # X, y = FGSM_attack(X, y, model, loss_fn)
-            # X, y = CnW_attack(X, y, model, loss_fn)
+            X, y = CnW_attack(X, y, model, loss_fn)
 
             pred, feat = model(X)
 
