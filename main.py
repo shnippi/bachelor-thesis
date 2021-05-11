@@ -18,7 +18,7 @@ print(f"plot: {os.environ.get('PLOT')}, adversary = {os.environ.get('ADVERSARY')
 
 # Hyperparameters
 batch_size = 128 if torch.cuda.is_available() else 4
-epochs = 50 if torch.cuda.is_available() else 5
+epochs = 50 if torch.cuda.is_available() else 2
 iterations = 3
 learning_rate = 0.01
 trainsamples = 1000
@@ -87,9 +87,9 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
         # generate and train on adversaries
         if os.environ.get('ADVERSARY') == "t":
             # X, y = random_perturbation(X, y)
-            # X, y = PGD_attack(X, y, model, loss_fn, eps, eps_iter)
+            X, y = PGD_attack(X, y, model, loss_fn, eps, eps_iter)
             # X, y = FGSM_attack(X, y, model, loss_fn)
-            X, y = CnW_attack(X, y, model, loss_fn)
+            # X, y = CnW_attack(X, y, model, loss_fn)
 
             pred, feat = model(X, features=True)
 
@@ -154,6 +154,7 @@ def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None
         if current_epoch == epochs:  # only plot on the last epoch
             epsilon_plot(eps_tensor, eps_list, eps_iter_list, current_iteration)
             epsilon_table(eps_tensor, eps_list, eps_iter_list, current_iteration)
+            simplescatter(features, 11, eps, eps_iter, current_iteration)
 
     # print(f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
     print(f"Test Error: \n Confidence: {conf * 100:>0.1f}%, acc_known: {acc_known[0] / acc_known[1] * 100:>0.1f}%, "

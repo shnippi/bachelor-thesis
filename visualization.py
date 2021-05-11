@@ -30,7 +30,8 @@ colors = np.array([
 colors = colors / 255.
 
 
-def simplescatter(features, classes, c=("b", "g", "r", "c", "m", "y", "orange", "lawngreen", "peru", "deeppink", "k"),
+def simplescatter(features, classes, eps=None, eps_iter=None, current_iteration=None,
+                  c=("b", "g", "r", "c", "m", "y", "orange", "lawngreen", "peru", "deeppink", "k"),
                   s=0.1):
     plt.figure(1)
     # scatterplot every digit to a color
@@ -42,7 +43,11 @@ def simplescatter(features, classes, c=("b", "g", "r", "c", "m", "y", "orange", 
     if not os.path.exists('./plots'):
         os.makedirs('./plots')
 
-    plt.savefig("plots/flower.png", dpi=600)
+    if eps and eps_iter and current_iteration:
+        plt.savefig(f"plots/flower_{eps}eps_{eps_iter}epsiter_{current_iteration}iter.png", dpi=600)
+    else:
+        plt.savefig("plots/flower.png", dpi=600)
+
     if os.environ.get('PLOT') == "t":
         plt.show()
     plt.close()
