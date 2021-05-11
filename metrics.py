@@ -89,8 +89,11 @@ def confidence(logits, target, negative_offset=0.1):
 
         confidence = 0.
         if torch.sum(known):
+            # sums the softmax probabilities at the index of the targets
             confidence += torch.sum(pred[known, target[known]])
         if torch.sum(~known):
+            # sum( 1 + negative offset - (the highest softmax probabilities of the guesses) )
+            # --> if the highest prob is 0.15 (for 7 f.e.), it is 0.95 confident that its sth else
             confidence += torch.sum(1. + negative_offset - torch.max(pred[~known], dim=1)[0])
 
         # TODO: divide by the length of logits?

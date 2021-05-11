@@ -21,8 +21,8 @@ batch_size = 128 if torch.cuda.is_available() else 4
 epochs = 50 if torch.cuda.is_available() else 5
 iterations = 3
 learning_rate = 0.01
-trainsamples = 5000
-testsamples = 1000
+trainsamples = 1000
+testsamples = 500
 
 # create Datasets
 # training_data, test_data = Data_manager.mnist_plus_letter(device)
@@ -63,7 +63,7 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
     # enumerates the image in greyscale value (X) with the true label (y) in lists that are as long as the batchsize
     # ( 0 (batchnumber) , ( tensor([.. grayscale values ..]) , tensor([.. labels ..]) )  )  <-- for batchsize=1
     for batch, (X, y) in enumerate(dataloader):
-        # print(list(enumerate(dataloader))[1]) #prints a batch
+        # print(list(enumerate(dataloader))[1]) # prints a batch
 
         optimizer.zero_grad()
 

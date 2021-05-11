@@ -47,6 +47,7 @@ def simplescatter(features, classes, c=("b", "g", "r", "c", "m", "y", "orange", 
         plt.show()
     plt.close()
 
+
 def epsilon_plot(eps_tensor, eps_list, eps_iter_list, iteration=None):
     plt.figure(2)
     # pull out the 3rd (depth) dimension of the tensor. Now for every eps-eps_iter pair theres a list with
@@ -59,15 +60,15 @@ def epsilon_plot(eps_tensor, eps_list, eps_iter_list, iteration=None):
     for i in range(len(confidences)):
         eps_index = i // len(eps_iter_list)
         eps_iter_index = i % len(eps_iter_list)
-        if confidences[i][-1] > max_conf:
+        if confidences[i][-1] > max_conf and confidences[i][-1] > 0.5:
             plt.plot(confidences[i], label=f"eps: {eps_list[eps_index]}, eps_iter: {eps_iter_list[eps_iter_index]}")
             max_conf = confidences[i][-1]
-        else:
+        elif confidences[i][-1] > 0.5:
             plt.plot(confidences[i])
 
     plt.xlabel("epochs")
     plt.ylabel("confidence")
-    # plt.legend()
+    plt.legend()
 
     if not os.path.exists('./plots'):
         os.makedirs('./plots')
@@ -113,6 +114,7 @@ def epsilon_table(eps_tensor, eps_list, eps_iter_list, iteration=None):
     if os.environ.get('PLOT') == "t":
         plt.show()
     plt.close()
+
 
 def plot_histogram(pos_features, neg_features, pos_labels='Knowns', neg_labels='Unknowns', title="Histogram",
                    file_name='{}foo.pdf'):
