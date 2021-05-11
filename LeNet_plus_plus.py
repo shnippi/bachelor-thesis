@@ -29,7 +29,7 @@ class LeNet_plus_plus(nn.Module):
         # activation function
         self.prelu_act = nn.PReLU()
 
-    def forward(self, x):
+    def forward(self, x, features=False):
         # compute first convolution block output
         x = self.prelu_act(self.pool(self.batch_norm1(self.conv1_2(self.conv1_1(x)))))
         # compute second convolution block output
@@ -42,5 +42,8 @@ class LeNet_plus_plus(nn.Module):
         z = self.fc1(x)
         # second fully-connected layer to compute the logits
         y = self.fc2(z)
-        # return both the logits and the deep features
-        return y, z
+        if features:
+            # return both the logits and the deep features
+            return y, z
+        else:
+            return y

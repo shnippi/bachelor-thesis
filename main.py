@@ -26,7 +26,7 @@ testsamples = 500
 
 # create Datasets
 # training_data, test_data = Data_manager.mnist_plus_letter(device)
-training_data, test_data = Data_manager.mnist_adversarials(device)
+training_data, test_data = Data_manager.mnist_adversarials(device, trainsamples, testsamples)
 # training_data, test_data = Data_manager.Concat_emnist(device)
 # training_data, test_data = Data_manager.mnist_vanilla(device)
 # training_data, test_data = Data_manager.emnist_digits(device)
@@ -73,7 +73,7 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
         X, y = X.to(device), y.to(device)
 
         # implicitly calls forward
-        pred, feat = model(X)
+        pred, feat = model(X, features=True)
 
         # print(pred)
         # print(y)
@@ -91,7 +91,7 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
             # X, y = FGSM_attack(X, y, model, loss_fn)
             X, y = CnW_attack(X, y, model, loss_fn)
 
-            pred, feat = model(X)
+            pred, feat = model(X, features=True)
 
             # print(pred)
             # print(y)
@@ -128,7 +128,7 @@ def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None
         # iterating over every batch
         for X, y in dataloader:
             X, y = X.to(device), y.to(device)
-            pred, feat = model(X)
+            pred, feat = model(X, features=True)
             test_loss += loss_fn(pred, y).item()
             conf += confidence(pred, y)
             acc_known += accuracy_known(pred, y)
