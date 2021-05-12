@@ -18,7 +18,7 @@ print(f"plot: {os.environ.get('PLOT')}, adversary = {os.environ.get('ADVERSARY')
 
 # Hyperparameters
 batch_size = 128 if torch.cuda.is_available() else 4
-epochs = 50 if torch.cuda.is_available() else 2
+epochs = 100 if torch.cuda.is_available() else 2
 iterations = 3
 learning_rate = 0.01
 trainsamples = 1000
@@ -26,7 +26,7 @@ testsamples = 500
 
 # create Datasets
 # training_data, test_data = Data_manager.mnist_plus_letter(device)
-training_data, test_data = Data_manager.mnist_adversarials(device, trainsamples, testsamples)
+training_data, test_data = Data_manager.mnist_adversarials(device)
 # training_data, test_data = Data_manager.Concat_emnist(device)
 # training_data, test_data = Data_manager.mnist_vanilla(device)
 # training_data, test_data = Data_manager.emnist_digits(device)
@@ -107,7 +107,7 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
 
 
 # eps is upper bound for change of pixel values
-eps_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
+eps_list = [0.3, 0.35, 0.4, 0.45, 0.5]
 eps_iter_list = eps_list
 eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
 accumulated_eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
