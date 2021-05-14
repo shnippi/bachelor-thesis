@@ -106,8 +106,8 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
             print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
 
 
-# eps is upper bound for change of pixel values
-eps_list = [0.3, 0.35, 0.4, 0.45, 0.5]
+# eps is upper bound for change of pixel values , educated guess : [0.1:0.5]
+eps_list = [0.1, 0.2, 0.3, 0.4, 0.5]
 eps_iter_list = eps_list
 eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
 accumulated_eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
@@ -161,7 +161,6 @@ def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None
           f"Avg loss: {test_loss:>8f} \n")
 
 
-# TODO: CLOSE THE FIRGURES?
 # TODO: let the iteartions run in parallel on multiple GPUs?
 # TODO: save the flower of the max/ make better flower save system
 if __name__ == '__main__':
@@ -180,7 +179,7 @@ if __name__ == '__main__':
             for eps_iter in eps_iter_list:
 
                 # only if eps = eps_iter
-                if eps != eps_iter:
+                if eps < eps_iter:
                     continue
 
                 # seed dependent on current iteration
