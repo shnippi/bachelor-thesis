@@ -8,6 +8,7 @@ import Data_manager
 from loss import entropic_openset_loss
 from metrics import *
 from dotenv import load_dotenv
+from sklearn.metrics import roc_auc_score
 
 load_dotenv()
 
@@ -75,6 +76,14 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
         # implicitly calls forward
         pred, feat = model(X, features=True)
 
+        #TODO: fix this
+
+        # yplot = torch.zeros_like(pred)
+        # for i in range(len(y)):
+        #     yplot[i][y[i]] = 1
+        #
+        # roc_auc_score(yplot.detach().numpy(), F.softmax(pred, dim=0).detach().numpy(), multi_class="ovr")
+
         # print(pred)
         # print(y)
 
@@ -89,8 +98,8 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
             # TODO: find best threshold
 
             # Only take adversarials if prediction is correct/over a certain threshold
-            # X, y = filter_correct(X, y, pred)
-            X, y = filter_threshold(X, y, pred)
+            X, y = filter_correct(X, y, pred)
+            # X, y = filter_threshold(X, y, pred)
 
             # X, y = random_perturbation(X, y)
             X, y = PGD_attack(X, y, model, loss_fn, eps, eps_iter)
@@ -113,7 +122,7 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
 
 
 # eps is upper bound for change of pixel values , educated guess : [0.1:0.5]
-eps_list = [0.1, 0.2, 0.3, 0.4, 0.5]
+eps_list = [0.2, 0.3, 0.4, 0.5, 0.6]
 eps_iter_list = eps_list
 eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
 accumulated_eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
@@ -185,7 +194,7 @@ if __name__ == '__main__':
             for eps_iter in eps_iter_list:
 
                 # only if eps = eps_iter
-                if eps < eps_iter:
+                if eps != eps_iter:
                     continue
 
                 # seed dependent on current iteration

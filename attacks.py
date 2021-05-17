@@ -30,7 +30,7 @@ def random_perturbation(X, y):
 def PGD_attack(X, y, model, loss_fn, eps=0.15, eps_iter=0.1):
     adversary = PGDAttack(
         model, loss_fn=loss_fn, eps=eps,
-        nb_iter=3, eps_iter=eps_iter, rand_init=True, clip_min=0.0, clip_max=1.0,
+        nb_iter=1, eps_iter=eps_iter, rand_init=True, clip_min=0.0, clip_max=1.0,
         targeted=False)
 
     X = adversary.perturb(X, y)
