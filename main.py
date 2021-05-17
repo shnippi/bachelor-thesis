@@ -1,4 +1,3 @@
-import torch
 from torch.utils.data import DataLoader, random_split, Subset
 from visualization import *
 from helper import *
