@@ -1,4 +1,5 @@
 import torch
+import torch.nn.functional as F
 
 
 def lots(network, data, target, target_class=None, epsilon=None, stepwidth=1. / 255., iterations=1):
@@ -42,7 +43,7 @@ def lots(network, data, target, target_class=None, epsilon=None, stepwidth=1. / 
                     return data.squeeze(0), True
 
         # compute MSE loss between output and target
-        loss = torch.nn.functional.mse_loss(features, target, reduction="sum")
+        loss = F.mse_loss(features, target, reduction="sum")
 
         # get gradient
         loss.backward()
@@ -77,7 +78,7 @@ def lots_(network, data, target, stepwidth):
     logits, features = network.forward(data)
 
     # compute MSE loss between output and target
-    loss = torch.nn.functional.mse_loss(features, target, reduction="mean")
+    loss = F.mse_loss(features, target, reduction="mean")
 
     # get gradient
     loss.backward()
