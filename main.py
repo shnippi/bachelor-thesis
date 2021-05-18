@@ -8,6 +8,7 @@ from loss import entropic_openset_loss
 from metrics import *
 from dotenv import load_dotenv
 from sklearn.metrics import roc_auc_score
+from lots import lots, lots_
 
 load_dotenv()
 
@@ -72,10 +73,12 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
 
         X, y = X.to(device), y.to(device)
 
+        # TODO: features become nan when using LOTS???
         # implicitly calls forward
         pred, feat = model(X, features=True)
+        print(feat)
 
-        #TODO: fix this
+        # TODO: fix this
 
         # yplot = torch.zeros_like(pred)
         # for i in range(len(y)):
@@ -98,15 +101,16 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
 
             # filter the samples
             # X, y = filter_correct(X, y, pred)
-            X, y = filter_threshold(X, y, pred)
+            # X, y = filter_threshold(X, y, pred)
 
             if len(X) > 0:
                 # X, y = random_perturbation(X, y)
-                X, y = PGD_attack(X, y, model, loss_fn, eps, eps_iter)
+                # X, y = PGD_attack(X, y, model, loss_fn, eps, eps_iter)
                 # X, y = FGSM_attack(X, y, model, loss_fn)
                 # X, y = CnW_attack(X, y, model, loss_fn)
+                X, y = lots_attack_batch(X, y, model, feat, 0.5)
 
-                pred, feat = model(X, features=True)
+                pred = model(X)
 
                 # print(pred)
                 # print(y)

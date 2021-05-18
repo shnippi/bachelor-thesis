@@ -4,6 +4,7 @@ from numpy import random
 from matplotlib import pyplot as plt
 from dotenv import load_dotenv
 from advertorch.attacks import PGDAttack, GradientSignAttack, CarliniWagnerL2Attack
+from lots import lots, lots_
 
 load_dotenv()
 
@@ -58,7 +59,31 @@ def FGSM_attack(X, y, model, loss_fn, eps=0.15, eps_iter=0.1):
 def CnW_attack(X, y, model, loss_fn, eps=0.15, eps_iter=0.1, num_classes=10):
     adversary = CarliniWagnerL2Attack(model.forward, num_classes, binary_search_steps=1, max_iterations=10)
 
-    X = adversary.perturb(X,y)
+    X = adversary.perturb(X, y)
+    y = torch.ones(y.shape, dtype=torch.long, device=device) * -1
+
+    # plt.imshow(X[0][0].to("cpu"), "gray")
+    # plt.show()
+
+    return X, y
+
+
+def lots_attack_single(X, y, model, feat, eps=None):
+    target = torch.zeros_like(feat)
+    for i in range(len(X)):
+        X, has_reached = lots(model, X[i], target[i], eps)
+
+    y = torch.ones(y.shape, dtype=torch.long, device=device) * -1
+
+    return X, y
+
+
+def lots_attack_batch(X, y, model, feat, eps=None):
+    # print(feat)
+    target = torch.zeros_like(feat)
+    # plt.imshow(X[0][0].to("cpu"), "gray")
+    # plt.show()
+    X = lots_(model, X, target, eps)
     y = torch.ones(y.shape, dtype=torch.long, device=device) * -1
 
     # plt.imshow(X[0][0].to("cpu"), "gray")

@@ -28,7 +28,7 @@ def lots(network, data, target, target_class=None, epsilon=None, stepwidth=1. / 
         network.zero_grad()
 
         # forward image and extract the given layer and the logits
-        logits, features = network.forward(data)
+        logits, features = network.forward(data, features=True)
 
         with torch.no_grad():
             # check if already correctly classified
@@ -71,18 +71,24 @@ def lots_(network, data, target, stepwidth):
 
   :return adversarial: The adversarial image that has been created
   """
+    # TODO: why network zerograd?
     data.requires_grad_(True)
     network.zero_grad()
 
     # forward image and extract the given layer and the logits
-    logits, features = network.forward(data)
+    logits, features = network.forward(data, features=True)
+    print(features)
 
     # compute MSE loss between output and target
     loss = F.mse_loss(features, target, reduction="mean")
 
+
     # get gradient
     loss.backward()
+
+    # TODO: why take gradient of data??? how does this even make sense lmao
     gradient = data.grad.detach()
+    print(gradient)
     with torch.no_grad():
         # normalize gradient to have its max abs value at 1
         N = gradient.size(0)
