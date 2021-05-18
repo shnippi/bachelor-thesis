@@ -108,7 +108,7 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
                 # X, y = PGD_attack(X, y, model, loss_fn, eps, eps_iter)
                 # X, y = FGSM_attack(X, y, model, loss_fn)
                 # X, y = CnW_attack(X, y, model, loss_fn)
-                X, y = lots_attack_batch(X, y, model, feat, 0.5)
+                X, y = lots_attack_batch(X, y, model, feat, 0.1)
 
                 pred = model(X)
 

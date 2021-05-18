@@ -71,24 +71,24 @@ def lots_(network, data, target, stepwidth):
 
   :return adversarial: The adversarial image that has been created
   """
-    # TODO: why network zerograd?
+    # TODO: IT ZEROGRADS THE NETWORK BEFORE THE FIRST ORIGINAL SAMPLE DID THE OPTIM STEP? this is bad right?
     data.requires_grad_(True)
     network.zero_grad()
 
     # forward image and extract the given layer and the logits
     logits, features = network.forward(data, features=True)
-    print(features)
 
     # compute MSE loss between output and target
     loss = F.mse_loss(features, target, reduction="mean")
 
-
     # get gradient
     loss.backward()
 
-    # TODO: why take gradient of data??? how does this even make sense lmao
+    # why take gradient of data? --> because data is the input? and we want the gradients of its feautres?
     gradient = data.grad.detach()
-    print(gradient)
+
+    # zerograd the network again for next sample
+    network.zero_grad()
     with torch.no_grad():
         # normalize gradient to have its max abs value at 1
         N = gradient.size(0)
