@@ -55,6 +55,8 @@ def lots(network, data, target, target_class=None, epsilon=None, stepwidth=1. / 
             # reduce loss by moving toward negative gradient, and assure to be in image dimensions
             data = torch.clamp(data - gradient_step, 0., 1.)
 
+    # TODO: correct place?
+    network.zero_grad()
     # target has not been reached in the given number of iterations
     return data.squeeze(0), False
 
