@@ -96,22 +96,23 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
         if os.environ.get('ADVERSARY') == "t":
             # TODO: find best threshold
 
-            # Only take adversarials if prediction is correct/over a certain threshold
-            X, y = filter_correct(X, y, pred)
-            # X, y = filter_threshold(X, y, pred)
+            # filter the samples
+            # X, y = filter_correct(X, y, pred)
+            X, y = filter_threshold(X, y, pred)
 
-            # X, y = random_perturbation(X, y)
-            X, y = PGD_attack(X, y, model, loss_fn, eps, eps_iter)
-            # X, y = FGSM_attack(X, y, model, loss_fn)
-            # X, y = CnW_attack(X, y, model, loss_fn)
+            if len(X) > 0:
+                # X, y = random_perturbation(X, y)
+                X, y = PGD_attack(X, y, model, loss_fn, eps, eps_iter)
+                # X, y = FGSM_attack(X, y, model, loss_fn)
+                # X, y = CnW_attack(X, y, model, loss_fn)
 
-            pred, feat = model(X, features=True)
+                pred, feat = model(X, features=True)
 
-            # print(pred)
-            # print(y)
+                # print(pred)
+                # print(y)
 
-            loss = loss_fn(pred, y)
-            loss.backward()
+                loss = loss_fn(pred, y)
+                loss.backward()
 
         optimizer.step()
 
