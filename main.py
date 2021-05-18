@@ -7,7 +7,7 @@ import Data_manager
 from loss import entropic_openset_loss
 from metrics import *
 from dotenv import load_dotenv
-from sklearn.metrics import roc_auc_score
+# from sklearn.metrics import roc_auc_score
 from lots import lots, lots_
 
 load_dotenv()
@@ -73,10 +73,9 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
 
         X, y = X.to(device), y.to(device)
 
-        # TODO: features become nan when using LOTS???
         # implicitly calls forward
         pred, feat = model(X, features=True)
-        print(feat)
+        # print(feat)
 
         # TODO: fix this
 
