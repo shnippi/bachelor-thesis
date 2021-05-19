@@ -73,10 +73,9 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
 
         X, y = X.to(device), y.to(device)
 
-        # TODO: features become nan when using LOTS???
         # implicitly calls forward
         pred, feat = model(X, features=True)
-        print(feat)
+        # print(feat)
 
         # TODO: fix this
 
@@ -94,6 +93,9 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
 
         # Backpropagation
         loss.backward()
+        # TODO: can i do this?
+        optimizer.step()
+        optimizer.zero_grad()
 
         # generate and train on adversaries
         if os.environ.get('ADVERSARY') == "t":
@@ -108,7 +110,7 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
                 # X, y = PGD_attack(X, y, model, loss_fn, eps, eps_iter)
                 # X, y = FGSM_attack(X, y, model, loss_fn)
                 # X, y = CnW_attack(X, y, model, loss_fn)
-                X, y = lots_attack_batch(X, y, model, feat, 0.1)
+                X, y = lots_attack_batch(X, y, model, feat, eps)
 
                 pred = model(X)
 
@@ -118,7 +120,7 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
                 loss = loss_fn(pred, y)
                 loss.backward()
 
-        optimizer.step()
+                optimizer.step()
 
         if batch % 100 == 0:
             loss, current = loss.item(), batch * len(X)
@@ -126,7 +128,7 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
 
 
 # eps is upper bound for change of pixel values , educated guess : [0.1:0.5]
-eps_list = [0.2, 0.3, 0.4, 0.5, 0.6]
+eps_list = [0.2, 0.3, 0.4]
 eps_iter_list = eps_list
 eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
 accumulated_eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
