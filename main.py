@@ -93,7 +93,7 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
 
         # Backpropagation
         loss.backward()
-        # TODO: can i do this?
+        # TODO: am i allowed to do this?
         optimizer.step()
         optimizer.zero_grad()
 
@@ -128,7 +128,7 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
 
 
 # eps is upper bound for change of pixel values , educated guess : [0.1:0.5]
-eps_list = [0.2, 0.3, 0.4]
+eps_list = [69, 1337]
 eps_iter_list = eps_list
 eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
 accumulated_eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
