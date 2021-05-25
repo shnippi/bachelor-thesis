@@ -103,14 +103,14 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
 
             # filter the samples
             # X, y = filter_correct(X, y, pred)
-            # X, y = filter_threshold(X, y, pred)
+            X, y = filter_threshold(X, y, pred)
 
             if len(X) > 0:
                 # X, y = random_perturbation(X, y)
-                # X, y = PGD_attack(X, y, model, loss_fn, eps, eps_iter)
+                X, y = PGD_attack(X, y, model, loss_fn, eps, eps_iter)
                 # X, y = FGSM_attack(X, y, model, loss_fn)
                 # X, y = CnW_attack(X, y, model, loss_fn)
-                X, y = lots_attack_batch(X, y, model, feat, eps)
+                # X, y = lots_attack_batch(X, y, model, feat, eps)
 
                 pred = model(X)
 
@@ -128,7 +128,7 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
 
 
 # eps is upper bound for change of pixel values , educated guess : [0.1:0.5]
-eps_list = [69, 1337]
+eps_list = [0.1,0.2]
 eps_iter_list = eps_list
 eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
 accumulated_eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))

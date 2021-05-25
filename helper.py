@@ -18,22 +18,13 @@ class HiddenPrints:
         sys.stdout = self._original_stdout
 
 
-# TODO: mask this
 # Only take adversarials if prediction is correct
 def filter_correct(X, y, pred):
-    correct = torch.zeros_like(y, dtype=torch.bool)
-    for i in range(len(y)):
-        if torch.argmax(pred[i]) == y[i]:
-            correct[i] = True
-
+    correct = torch.argmax(pred, dim=1) == y
     return X[correct], y[correct]
 
-# TODO: mask this
-# Only take adversarials if prediction is over a certain threshold
-def filter_threshold(X, y, pred):
-    correct = torch.zeros_like(y, dtype=torch.bool)
-    for i in range(len(y)):
-        if F.softmax(pred[i], dim=0)[y[i]] > 0.5:
-            correct[i] = True
 
+# Only take adversarials if prediction is over a certain threshold
+def filter_threshold(X, y, pred, thresh=0.5):
+    correct = torch.diagonal(torch.index_select(F.softmax(pred, dim=1), dim=1, index=y) > thresh)
     return X[correct], y[correct]
