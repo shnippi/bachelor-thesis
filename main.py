@@ -78,12 +78,7 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
         # print(feat)
 
         # TODO: fix this
-
-        # yplot = torch.zeros_like(pred)
-        # for i in range(len(y)):
-        #     yplot[i][y[i]] = 1
-        #
-        # roc_auc_score(yplot.detach().numpy(), F.softmax(pred, dim=0).detach().numpy(), multi_class="ovr")
+        roc(pred, y)
 
         # print(pred)
         # print(y)
@@ -93,7 +88,6 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
 
         # Backpropagation
         loss.backward()
-        # TODO: am i allowed to do this?
         optimizer.step()
         optimizer.zero_grad()
 
@@ -103,7 +97,7 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
 
             # filter the samples
             # X, y = filter_correct(X, y, pred)
-            X, y = filter_threshold(X, y, pred)
+            X, y = filter_threshold(X, y, pred, thresh=0.5)
 
             if len(X) > 0:
                 # X, y = random_perturbation(X, y)
@@ -128,7 +122,7 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
 
 
 # eps is upper bound for change of pixel values , educated guess : [0.1:0.5]
-eps_list = [0.1,0.2]
+eps_list = [0.1, 0.2]
 eps_iter_list = eps_list
 eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
 accumulated_eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))

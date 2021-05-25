@@ -1,8 +1,10 @@
 import numpy as np
 import itertools
+
+import torch
 from matplotlib import pyplot as plt
 import os
-# from sklearn.metrics import roc_auc_score
+from sklearn.metrics import roc_auc_score
 
 colors = np.array([
     [230, 25, 75],
@@ -29,6 +31,25 @@ colors = np.array([
     [0, 0, 0]
 ]).astype(np.float)
 colors = colors / 255.
+
+
+def roc(pred, y):
+    scores = torch.ones_like(y, dtype=torch.float)
+    target = torch.ones_like(y)
+    for i in range(len(y)):
+        if y[i] == -1:
+            scores[i] = torch.max(pred[i])
+            target[i] = 0
+        else:
+            scores[i] = pred[i][y[i]]
+
+    scores = scores.detach().numpy()
+    target = target.detach().numpy()
+
+    print(scores)
+    print(target)
+
+    roc_auc_score(target, scores, multi_class="ovo")
 
 
 def simplescatter(features, classes, eps=None, eps_iter=None, current_iteration=None,
