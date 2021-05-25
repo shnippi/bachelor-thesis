@@ -15,8 +15,9 @@ load_dotenv()
 
 # Get cpu or gpu device for training.
 device = os.environ.get('DEVICE') if torch.cuda.is_available() else "cpu"
+metric = os.environ.get('METRIC')
 print("Using {} device".format(device))
-print(f"plot: {os.environ.get('PLOT')}, adversary = {os.environ.get('ADVERSARY')}")
+print(f"plot: {os.environ.get('PLOT')}, adversary = {os.environ.get('ADVERSARY')}, metric: {metric}")
 
 # Hyperparameters
 batch_size = 128 if torch.cuda.is_available() else 4
@@ -28,7 +29,7 @@ testsamples = 500
 
 # create Datasets
 # training_data, test_data = Data_manager.mnist_plus_letter(device)
-training_data, test_data = Data_manager.mnist_adversarials(device, trainsamples)
+training_data, test_data = Data_manager.mnist_adversarials(device)
 # training_data, test_data = Data_manager.Concat_emnist(device)
 # training_data, test_data = Data_manager.mnist_vanilla(device)
 # training_data, test_data = Data_manager.emnist_digits(device)
@@ -168,11 +169,14 @@ def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None
 
     # store conf, update and plot epsilons if given
     if eps and eps_iter:
-        eps_tensor[current_epoch - 1][eps_list.index(eps)][eps_iter_list.index(eps_iter)] = conf.item()
+        if metric == "conf":
+            eps_tensor[current_epoch - 1][eps_list.index(eps)][eps_iter_list.index(eps_iter)] = conf.item()
+        elif metric == "roc":
+            eps_tensor[current_epoch - 1][eps_list.index(eps)][eps_iter_list.index(eps_iter)] = roc_score
 
         if current_epoch == epochs:  # only plot on the last epoch
-            epsilon_plot(eps_tensor, eps_list, eps_iter_list, current_iteration)
-            epsilon_table(eps_tensor, eps_list, eps_iter_list, current_iteration)
+            epsilon_plot(eps_tensor, eps_list, eps_iter_list, metric, current_iteration)
+            epsilon_table(eps_tensor, eps_list, eps_iter_list, metric, current_iteration)
             simplescatter(features, 11, eps, eps_iter, current_iteration)
 
     # print(f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")

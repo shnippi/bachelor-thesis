@@ -73,7 +73,7 @@ def simplescatter(features, classes, eps=None, eps_iter=None, current_iteration=
     plt.close()
 
 
-def epsilon_plot(eps_tensor, eps_list, eps_iter_list, iteration=None):
+def epsilon_plot(eps_tensor, eps_list, eps_iter_list, title, iteration=None):
     plt.figure(2)
     # pull out the 3rd (depth) dimension of the tensor. Now for every eps-eps_iter pair theres a list with
     # confidences over all epochs
@@ -92,7 +92,7 @@ def epsilon_plot(eps_tensor, eps_list, eps_iter_list, iteration=None):
             plt.plot(confidences[i])
 
     plt.xlabel("epochs")
-    plt.ylabel("confidence")
+    plt.ylabel(title)
     plt.legend()
 
     if not os.path.exists('./plots'):
@@ -109,7 +109,7 @@ def epsilon_plot(eps_tensor, eps_list, eps_iter_list, iteration=None):
 
 
 # TODO: make like the max the most saturated and then fading stuff
-def epsilon_table(eps_tensor, eps_list, eps_iter_list, iteration=None):
+def epsilon_table(eps_tensor, eps_list, eps_iter_list, title, iteration=None):
     plt.figure(figsize=(6, 4), dpi=800)
 
     data = eps_tensor[-1].cpu().detach().numpy()
@@ -124,7 +124,7 @@ def epsilon_table(eps_tensor, eps_list, eps_iter_list, iteration=None):
     plt.axis('tight')
     plt.axis('off')
 
-    plt.title("confidences")
+    plt.title(title)
 
     plt.table(cellText=data, rowLabels=rows, colLabels=columns, loc="center", cellColours=cell_colors)
 
