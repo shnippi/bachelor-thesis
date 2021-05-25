@@ -120,7 +120,7 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
 
 
 # eps is upper bound for change of pixel values , educated guess : [0.1:0.5]
-eps_list = [0.1, 0.2]
+eps_list = [0.2, 0.3, 0.4, 0.5]
 eps_iter_list = eps_list
 eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
 accumulated_eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
@@ -130,6 +130,7 @@ accumulated_eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list))
 def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None, eps_iter=None):
     # one nested list for each digit + 1 unknown class
     features = [[], [], [], [], [], [], [], [], [], [], []]
+    # TODO: make roc more effcient --> only calcualte roc when metric is roc etc.
     roc_y = torch.tensor([], dtype = torch.long).to(device)
     roc_pred = torch.tensor([], dtype = torch.long).to(device)
 
@@ -220,7 +221,7 @@ if __name__ == '__main__':
         accumulated_eps_tensor += eps_tensor
 
     mean_eps_tensor = accumulated_eps_tensor / iterations
-    epsilon_plot(mean_eps_tensor, eps_list, eps_iter_list)
-    epsilon_table(mean_eps_tensor, eps_list, eps_iter_list)
+    epsilon_plot(mean_eps_tensor, eps_list, metric, eps_iter_list)
+    epsilon_table(mean_eps_tensor, eps_list, metric, eps_iter_list)
 
     print("Done!")
