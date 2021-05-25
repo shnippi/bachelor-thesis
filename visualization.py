@@ -2,7 +2,7 @@ import numpy as np
 import itertools
 from matplotlib import pyplot as plt
 import os
-from sklearn.metrics import roc_auc_score
+# from sklearn.metrics import roc_auc_score
 
 colors = np.array([
     [230, 25, 75],

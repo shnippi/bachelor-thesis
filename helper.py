@@ -18,6 +18,7 @@ class HiddenPrints:
         sys.stdout = self._original_stdout
 
 
+# TODO: mask this
 # Only take adversarials if prediction is correct
 def filter_correct(X, y, pred):
     correct = torch.zeros_like(y, dtype=torch.bool)
@@ -27,7 +28,7 @@ def filter_correct(X, y, pred):
 
     return X[correct], y[correct]
 
-
+# TODO: mask this
 # Only take adversarials if prediction is over a certain threshold
 def filter_threshold(X, y, pred):
     correct = torch.zeros_like(y, dtype=torch.bool)
