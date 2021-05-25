@@ -46,10 +46,8 @@ def roc(pred, y):
     scores = scores.detach().numpy()
     target = target.detach().numpy()
 
-    print(scores)
-    print(target)
-
-    roc_auc_score(target, scores, multi_class="ovo")
+    # TODO: ovr vs ovo??
+    return roc_auc_score(target, scores, multi_class="ovo")
 
 
 def simplescatter(features, classes, eps=None, eps_iter=None, current_iteration=None,

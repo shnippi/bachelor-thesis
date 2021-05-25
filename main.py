@@ -1,3 +1,4 @@
+import torch
 from torch.utils.data import DataLoader, random_split, Subset
 from visualization import *
 from helper import *
@@ -22,12 +23,12 @@ batch_size = 128 if torch.cuda.is_available() else 4
 epochs = 100 if torch.cuda.is_available() else 2
 iterations = 3
 learning_rate = 0.01
-trainsamples = 1000
+trainsamples = 5000
 testsamples = 500
 
 # create Datasets
 # training_data, test_data = Data_manager.mnist_plus_letter(device)
-training_data, test_data = Data_manager.mnist_adversarials(device)
+training_data, test_data = Data_manager.mnist_adversarials(device, trainsamples)
 # training_data, test_data = Data_manager.Concat_emnist(device)
 # training_data, test_data = Data_manager.mnist_vanilla(device)
 # training_data, test_data = Data_manager.emnist_digits(device)
@@ -76,10 +77,6 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
         # implicitly calls forward
         pred, feat = model(X, features=True)
         # print(feat)
-
-        # TODO: fix this
-        roc(pred, y)
-
         # print(pred)
         # print(y)
 
@@ -97,7 +94,7 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
 
             # filter the samples
             # X, y = filter_correct(X, y, pred)
-            X, y = filter_threshold(X, y, pred, thresh=0.5)
+            # X, y = filter_threshold(X, y, pred, thresh=0.5)
 
             if len(X) > 0:
                 # X, y = random_perturbation(X, y)
@@ -132,12 +129,14 @@ accumulated_eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list))
 def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None, eps_iter=None):
     # one nested list for each digit + 1 unknown class
     features = [[], [], [], [], [], [], [], [], [], [], []]
+    roc_y = torch.tensor([], dtype = torch.long).to(device)
+    roc_pred = torch.tensor([], dtype = torch.long).to(device)
 
     size = len(dataloader.dataset)
     n_batches = len(dataloader)
 
     model.eval()
-    test_loss, conf, correct = 0, 0, 0
+    test_loss, conf, roc_score, correct = 0, 0, 0, 0
     acc_known = torch.tensor((1, 2))
     with torch.no_grad():  # dont need the backward prop
         # iterating over every batch
@@ -149,6 +148,10 @@ def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None
             acc_known += accuracy_known(pred, y)
             correct += (pred.argmax(1) == y).type(torch.float).sum().item()
 
+            # add for roc
+            roc_y = torch.cat((roc_y, y.detach()))
+            roc_pred = torch.cat((roc_pred, pred.detach()))
+
             # put the 2dfeatures for every sample in the correct sublist according to their true label(index)
             # -1 --> last sublist
             ylist = y.to("cpu").detach().tolist()
@@ -158,6 +161,7 @@ def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None
     test_loss /= n_batches
     correct /= size
     conf /= n_batches
+    roc_score = roc(roc_pred.to("cpu").detach(), roc_y.to("cpu").detach())
 
     # plot the features with #classes
     simplescatter(features, 11)
@@ -172,7 +176,7 @@ def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None
             simplescatter(features, 11, eps, eps_iter, current_iteration)
 
     # print(f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
-    print(f"Test Error: \n Confidence: {conf * 100:>0.1f}%, acc_known: {acc_known[0] / acc_known[1] * 100:>0.1f}%, "
+    print(f"Test Error: \n Confidence: {conf * 100:>0.1f}%, AUC: {roc_score:>0.8f}, acc_known: {acc_known[0] / acc_known[1] * 100:>0.1f}%, "
           f"Avg loss: {test_loss:>8f} \n")
 
 
