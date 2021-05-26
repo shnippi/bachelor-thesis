@@ -29,7 +29,7 @@ testsamples = 500
 
 # create Datasets
 # training_data, test_data = Data_manager.mnist_plus_letter(device)
-training_data, test_data = Data_manager.mnist_adversarials(device)
+training_data, test_data = Data_manager.mnist_adversarials(device,trainsamples)
 # training_data, test_data = Data_manager.Concat_emnist(device)
 # training_data, test_data = Data_manager.mnist_vanilla(device)
 # training_data, test_data = Data_manager.emnist_digits(device)
@@ -92,17 +92,16 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
         # generate and train on adversaries
         if os.environ.get('ADVERSARY') == "t":
             # TODO: find best threshold
-
             # filter the samples
-            # X, y = filter_correct(X, y, pred)
-            # X, y = filter_threshold(X, y, pred, thresh=0.5)
+            # X, y, feat = filter_correct(X, y, pred, feat)
+            X, y, feat = filter_threshold(X, y, pred, feat, thresh=0.9)
 
             if len(X) > 0:
                 # X, y = random_perturbation(X, y)
-                X, y = PGD_attack(X, y, model, loss_fn, eps, eps_iter)
+                # X, y = PGD_attack(X, y, model, loss_fn, eps, eps_iter)
                 # X, y = FGSM_attack(X, y, model, loss_fn)
                 # X, y = CnW_attack(X, y, model, loss_fn)
-                # X, y = lots_attack_batch(X, y, model, feat, eps)
+                X, y = lots_attack_batch(X, y, model, feat, eps)
 
                 pred = model(X)
 
@@ -122,6 +121,7 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
 # eps is upper bound for change of pixel values , educated guess : [0.1:0.5]
 eps_list = [0.2, 0.3, 0.4, 0.5]
 eps_iter_list = eps_list
+# tensor to store the metric values
 eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
 accumulated_eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
 
@@ -131,8 +131,8 @@ def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None
     # one nested list for each digit + 1 unknown class
     features = [[], [], [], [], [], [], [], [], [], [], []]
     # TODO: make roc more effcient --> only calcualte roc when metric is roc etc.
-    roc_y = torch.tensor([], dtype = torch.long).to(device)
-    roc_pred = torch.tensor([], dtype = torch.long).to(device)
+    roc_y = torch.tensor([], dtype=torch.long).to(device)
+    roc_pred = torch.tensor([], dtype=torch.long).to(device)
 
     size = len(dataloader.dataset)
     n_batches = len(dataloader)
@@ -181,8 +181,10 @@ def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None
             simplescatter(features, 11, eps, eps_iter, current_iteration)
 
     # print(f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
-    print(f"Test Error: \n Confidence: {conf * 100:>0.1f}%, AUC: {roc_score:>0.8f}, acc_known: {acc_known[0] / acc_known[1] * 100:>0.1f}%, "
-          f"Avg loss: {test_loss:>8f} \n")
+    print(
+        f"Test Error: \n Confidence: {conf * 100:>0.1f}%, AUC: {roc_score:>0.8f}, "
+        f"acc_known: {acc_known[0] / acc_known[1] * 100:>0.1f}%, "
+        f"Avg loss: {test_loss:>8f} \n")
 
 
 # TODO: let the iteartions run in parallel on multiple GPUs?
@@ -221,7 +223,7 @@ if __name__ == '__main__':
         accumulated_eps_tensor += eps_tensor
 
     mean_eps_tensor = accumulated_eps_tensor / iterations
-    epsilon_plot(mean_eps_tensor, eps_list, metric, eps_iter_list)
-    epsilon_table(mean_eps_tensor, eps_list, metric, eps_iter_list)
+    epsilon_plot(mean_eps_tensor, eps_list, eps_iter_list, metric)
+    epsilon_table(mean_eps_tensor, eps_list, eps_iter_list, metric)
 
     print("Done!")
