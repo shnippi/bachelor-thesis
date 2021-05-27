@@ -68,8 +68,15 @@ def CnW_attack(X, y, model, loss_fn, eps=0.15, eps_iter=0.1, num_classes=10):
     return X, y
 
 
-def lots_attack_single(X, y, model, feat, eps=None):
-    target = torch.zeros_like(feat)
+# TODO: change target
+def lots_attack_single(X, y, model, feat, y_old, eps=None):
+    # for every sample get the feature targets of another sample that belongs to a different class
+    target = []
+    for t in range(len(y)):
+        j = None
+        while j is None or y[j] == t:
+            j = random.randint(0, len(y_old) - 1)
+        target.append(feat[j])
     for i in range(len(X)):
         X, has_reached = lots(model, X[i], target[i], eps)
 
@@ -78,12 +85,20 @@ def lots_attack_single(X, y, model, feat, eps=None):
     return X, y
 
 
-def lots_attack_batch(X, y, model, feat, eps=None):
-    # print(feat)
-    target = torch.zeros_like(feat)
+# TODO: change target
+def lots_attack_batch(X, y, model, feat, y_old, eps=None):
+    # for every sample get the feature targets of another sample that belongs to a different class
+    target = []
+    for t in y:
+        j = None
+        while j is None or y_old[j] == t:
+            j = random.randint(0, len(y_old) - 1)
+        target.append(feat[j])
+
     # plt.imshow(X[0][0].to("cpu"), "gray")
     # plt.show()
-    X = lots_(model, X, target, eps)
+
+    X = lots_(model, X, torch.stack(target).to(device), eps)
     y = torch.ones(y.shape, dtype=torch.long, device=device) * -1
 
     # plt.imshow(X[0][0].to("cpu"), "gray")

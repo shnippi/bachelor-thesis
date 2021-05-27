@@ -19,12 +19,12 @@ class HiddenPrints:
 
 
 # Only take adversarials if prediction is correct
-def filter_correct(X, y, pred, feat):
+def filter_correct(X, y, pred):
     correct = torch.argmax(pred, dim=1) == y
-    return X[correct], y[correct], feat[correct]
+    return X[correct], y[correct], y
 
 
 # Only take adversarials if prediction is over a certain threshold
-def filter_threshold(X, y, pred, feat, thresh):
+def filter_threshold(X, y, pred, thresh):
     correct = torch.diagonal(torch.index_select(F.softmax(pred, dim=1), dim=1, index=y) > thresh)
-    return X[correct], y[correct], feat[correct]
+    return X[correct], y[correct], y

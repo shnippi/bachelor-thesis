@@ -29,8 +29,8 @@ testsamples = 500
 
 # TODO: maybe also put solo datasets into concat dataset?
 # create Datasets
-training_data, test_data = Data_manager.mnist_plus_letter(device)
-# training_data, test_data = Data_manager.mnist_adversarials(device)
+# training_data, test_data = Data_manager.mnist_plus_letter(device)
+training_data, test_data = Data_manager.mnist_adversarials(device)
 # training_data, test_data = Data_manager.Concat_emnist(device)
 # training_data, test_data = Data_manager.mnist_vanilla(device)
 # training_data, test_data = Data_manager.emnist_digits(device)
@@ -92,18 +92,19 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
 
         # generate and train on adversaries
         if os.environ.get('ADVERSARY') == "t":
+            feat = feat.detach()
             # TODO: find best threshold
             # TODO: detach everything
             # filter the samples
-            # X, y, feat = filter_correct(X, y, pred, feat)
-            X, y, feat = filter_threshold(X, y, pred, feat, thresh=0.9)
+            # X, y, y_old = filter_correct(X, y, pred)
+            X, y, y_old = filter_threshold(X, y, pred, thresh=0.9)
 
             if len(X) > 0:
                 # X, y = random_perturbation(X, y)
                 # X, y = PGD_attack(X, y, model, loss_fn, eps, eps_iter)
                 # X, y = FGSM_attack(X, y, model, loss_fn)
                 # X, y = CnW_attack(X, y, model, loss_fn)
-                X, y = lots_attack_batch(X, y, model, feat, eps)
+                X, y = lots_attack_batch(X, y, model, feat, y_old, eps)
 
                 pred = model(X)
 

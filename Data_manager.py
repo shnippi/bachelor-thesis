@@ -139,7 +139,7 @@ def Concat_emnist(device, trainsamples=None, testsamples=None):
 
 def mnist_adversarials(device, trainsamples=None, testsamples=None):
     # training set
-    training_data = datasets.MNIST(
+    letters_train = datasets.MNIST(
         root="data",
         train=True,
         download=True,
@@ -164,5 +164,6 @@ def mnist_adversarials(device, trainsamples=None, testsamples=None):
     # no printing
     with HiddenPrints():
         test_data = ConcatDataset([digits_test, letters_test])
+        training_data = ConcatDataset([letters_train])
 
     return make_subset(device, training_data, test_data, trainsamples, testsamples)
