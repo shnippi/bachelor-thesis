@@ -110,6 +110,7 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
                 # X, y = CnW_attack(X, y, model, loss_fn)
                 X, y = lots_attack_batch(X, y, model, feat, y_old, eps)
 
+                optimizer.zero_grad() #TODO: remove this if doesnt help
                 pred = model(X)
 
                 # print(pred)
@@ -126,7 +127,7 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
 
 
 # eps is upper bound for change of pixel values , educated guess : [0.1:0.5]
-eps_list = [0.2, 0.3, 0.4, 0.5]
+eps_list = [0.2, 0.3, 0.4]
 eps_iter_list = eps_list
 # tensor to store the metric values
 eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
@@ -202,35 +203,40 @@ if __name__ == '__main__':
     #     train(train_dataloader, model, loss_fn, optimizer)
     #     test(test_dataloader, model)
 
+    for t in range(epochs):
+        print(f"Epoch {t + 1}\n-------------------------------")
+        train(train_dataloader, model, loss_fn, optimizer, eps = 0.3)
+        test(test_dataloader, model, 1, t + 1, 0.3, 0.3)
+
     # TODO: RUN THIS ON MULTIPLE GPU
-    for iteration in range(iterations):
-
-        # reset the epsilon tensor
-        eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
-
-        for eps in eps_list:
-            for eps_iter in eps_iter_list:
-
-                # only if eps = eps_iter
-                if eps != eps_iter:
-                    continue
-
-                # seed dependent on current iteration
-                torch.manual_seed(iteration)
-                new_model = LeNet_plus_plus().to(device)
-                new_optimizer = torch.optim.SGD(new_model.parameters(), lr=learning_rate, momentum=0.9)
-
-                for t in range(epochs):
-                    print(f"Epoch {t + 1} / {epochs}, eps: {eps}, eps_iter: {eps_iter}, "
-                          f"iter: {iteration + 1} / {iterations}\n "
-                          f"------------------------------------------")
-                    train(train_dataloader, new_model, loss_fn, new_optimizer, eps, eps_iter)
-                    test(test_dataloader, new_model, iteration + 1, t + 1, eps, eps_iter)
-
-        accumulated_eps_tensor += eps_tensor
-
-    mean_eps_tensor = accumulated_eps_tensor / iterations
-    epsilon_plot(mean_eps_tensor, eps_list, eps_iter_list, metric)
-    epsilon_table(mean_eps_tensor, eps_list, eps_iter_list, metric)
+    # for iteration in range(iterations):
+    #
+    #     # reset the epsilon tensor
+    #     eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
+    #
+    #     for eps in eps_list:
+    #         for eps_iter in eps_iter_list:
+    #
+    #             # only if eps = eps_iter
+    #             if eps != eps_iter:
+    #                 continue
+    #
+    #             # seed dependent on current iteration
+    #             torch.manual_seed(iteration)
+    #             new_model = LeNet_plus_plus().to(device)
+    #             new_optimizer = torch.optim.SGD(new_model.parameters(), lr=learning_rate, momentum=0.9)
+    #
+    #             for t in range(epochs):
+    #                 print(f"Epoch {t + 1} / {epochs}, eps: {eps}, eps_iter: {eps_iter}, "
+    #                       f"iter: {iteration + 1} / {iterations}\n "
+    #                       f"------------------------------------------")
+    #                 train(train_dataloader, new_model, loss_fn, new_optimizer, eps, eps_iter)
+    #                 test(test_dataloader, new_model, iteration + 1, t + 1, eps, eps_iter)
+    #
+    #     accumulated_eps_tensor += eps_tensor
+    #
+    # mean_eps_tensor = accumulated_eps_tensor / iterations
+    # epsilon_plot(mean_eps_tensor, eps_list, eps_iter_list, metric)
+    # epsilon_table(mean_eps_tensor, eps_list, eps_iter_list, metric)
 
     print("Done!")
