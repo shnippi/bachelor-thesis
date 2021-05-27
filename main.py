@@ -27,14 +27,15 @@ learning_rate = 0.01
 trainsamples = 5000
 testsamples = 500
 
+# TODO: maybe also put solo datasets into concat dataset?
 # create Datasets
-# training_data, test_data = Data_manager.mnist_plus_letter(device)
-training_data, test_data = Data_manager.mnist_adversarials(device)
+training_data, test_data = Data_manager.mnist_plus_letter(device)
+# training_data, test_data = Data_manager.mnist_adversarials(device)
 # training_data, test_data = Data_manager.Concat_emnist(device)
 # training_data, test_data = Data_manager.mnist_vanilla(device)
 # training_data, test_data = Data_manager.emnist_digits(device)
 
-# Create data loaders.
+# Create data loaders. # TODO: pin memory?
 train_dataloader = DataLoader(training_data, batch_size=batch_size, shuffle=True)
 test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=True)
 
@@ -92,6 +93,7 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
         # generate and train on adversaries
         if os.environ.get('ADVERSARY') == "t":
             # TODO: find best threshold
+            # TODO: detach everything
             # filter the samples
             # X, y, feat = filter_correct(X, y, pred, feat)
             X, y, feat = filter_threshold(X, y, pred, feat, thresh=0.9)
@@ -130,7 +132,7 @@ accumulated_eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list))
 def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None, eps_iter=None):
     # one nested list for each digit + 1 unknown class
     features = [[], [], [], [], [], [], [], [], [], [], []]
-    # TODO: make roc more effcient --> only calcualte roc when metric is roc etc.
+    # TODO: make roc more efficient --> only calculate roc when metric is roc etc.
     roc_y = torch.tensor([], dtype=torch.long).to(device)
     roc_pred = torch.tensor([], dtype=torch.long).to(device)
 
