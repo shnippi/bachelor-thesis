@@ -11,6 +11,10 @@ from dotenv import load_dotenv
 # from sklearn.metrics import roc_auc_score
 from lots import lots, lots_
 
+#TODO: differences to other script:
+# 1. detach everything?
+# 2. weights on the loss function?
+
 load_dotenv()
 
 # Get cpu or gpu device for training.
@@ -131,6 +135,7 @@ accumulated_eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list))
 
 # testing loop
 def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None, eps_iter=None):
+    model.eval()
     # one nested list for each digit + 1 unknown class
     features = [[], [], [], [], [], [], [], [], [], [], []]
     # TODO: make roc more efficient --> only calculate roc when metric is roc etc.
@@ -140,7 +145,6 @@ def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None
     size = len(dataloader.dataset)
     n_batches = len(dataloader)
 
-    model.eval()
     test_loss, conf, roc_score, correct = 0, 0, 0, 0
     acc_known = torch.tensor((1, 2))
     with torch.no_grad():  # dont need the backward prop
