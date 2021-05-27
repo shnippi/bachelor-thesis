@@ -5,15 +5,17 @@ from helper import *
 from attacks import *
 from LeNet_plus_plus import LeNet_plus_plus
 import Data_manager
+import pathlib
 from loss import entropic_openset_loss
 from metrics import *
 from dotenv import load_dotenv
 # from sklearn.metrics import roc_auc_score
 from lots import lots, lots_
 
-#TODO: differences to other script:
+# TODO: differences to other script:
 # 1. detach everything?
 # 2. weights on the loss function?
+# 3. Zeile 267 NO OPTIMIZER STEP AFTER ADVERSARIALS????????
 
 load_dotenv()
 
@@ -109,7 +111,7 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
                 # X, y = CnW_attack(X, y, model, loss_fn)
                 X, y = lots_attack_batch(X, y, model, feat, y_old, eps)
 
-                optimizer.zero_grad() #TODO: remove this if doesnt help
+                optimizer.zero_grad()  # TODO: remove this if doesnt help
                 pred = model(X)
 
                 # print(pred)
@@ -187,6 +189,14 @@ def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None
             epsilon_table(eps_tensor, eps_list, eps_iter_list, metric, current_iteration)
             simplescatter(features, 11, eps, eps_iter, current_iteration)
 
+            # save model
+            results_dir = pathlib.Path("/models")
+            save_dir = results_dir/f"{eps}eps_{eps_iter}epsiter"
+            results_dir.mkdir(parents=True, exist_ok=True)
+            torch.save(model.state_dict(), save_dir)
+
+
+
     # print(f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
     print(
         f"Test Error: \n Confidence: {conf * 100:>0.1f}%, AUC: {roc_score:>0.8f}, "
@@ -204,7 +214,7 @@ if __name__ == '__main__':
 
     for t in range(epochs):
         print(f"Epoch {t + 1}\n-------------------------------")
-        train(train_dataloader, model, loss_fn, optimizer, eps = 0.3)
+        train(train_dataloader, model, loss_fn, optimizer, eps=0.3)
         test(test_dataloader, model, 1, t + 1, 0.3, 0.3)
 
     # TODO: RUN THIS ON MULTIPLE GPU
