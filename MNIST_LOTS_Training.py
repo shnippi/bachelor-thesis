@@ -1,3 +1,8 @@
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+
 def command_line_options():
     import argparse
 
@@ -8,7 +13,7 @@ def command_line_options():
                     During training model with best performance on validation set in the no_of_epochs is used.'
     )
 
-    parser.add_argument("--approach", default=None, required=True,
+    parser.add_argument("--approach", default="entropic", required=False,
                         choices=['SoftMax', 'CenterLoss', 'COOL', 'BG', 'entropic', 'objectosphere'])
     parser.add_argument('--second_loss_weight', help='Loss weight for Objectosphere loss', type=float, default=0.0001)
     parser.add_argument('--minimum_prediction', type=float, default=0.9, help="Select the minimum probability for a sample to generate an adversarial for it")
@@ -19,12 +24,13 @@ def command_line_options():
     parser.add_argument("--lr", action="store", dest="lr", default=0.01, type=float)
     parser.add_argument('--batch_size', help='Batch_Size', action="store", dest="Batch_Size", type=int, default=128)
     parser.add_argument("--no_of_epochs", action="store", dest="no_of_epochs", type=int, default=70)
-    parser.add_argument("--dataset_root", default ="/tmp", help="Select the directory where datasets are stored.")
+    parser.add_argument("--dataset_root", default ="data", help="Select the directory where datasets are stored.")
 
     return parser.parse_args()
 
-
 def main():
+
+    print("begin")
 
     args = command_line_options()
 
@@ -38,14 +44,22 @@ def main():
 
     torch.manual_seed(0)
 
-    from vast import architectures
-    from vast import tools
-    from vast import losses
+    # from vast import architectures
+    # from vast import tools
+    # from vast import losses
+
+    from loss import entropic_openset_loss
+    from LeNet_plus_plus import LeNet_plus_plus
+    from ConcatDataset import ConcatDataset
+    from metrics import accuracy_known, confidence
+    from lots import lots_
 
     import random
 
     import pathlib
     import sys
+
+    device = os.environ.get('DEVICE') if torch.cuda.is_available() else "cpu"
 
     mnist_trainset = torchvision.datasets.MNIST(
         root=args.dataset_root,
@@ -76,6 +90,8 @@ def main():
         transform=transforms.ToTensor()
     )
 
+    print("test1")
+
     def get_loss_functions(args):
         approach = {"SoftMax": dict(first_loss_func=nn.CrossEntropyLoss(reduction='none'),
                                     second_loss_func=lambda arg1, arg2, arg3=None, arg4=None: torch.tensor(0.),
@@ -83,41 +99,41 @@ def main():
                                     training_data = [mnist_trainset],
                                     val_data = [mnist_valset]
                                     ),
-                    "CenterLoss": dict(first_loss_func=nn.CrossEntropyLoss(reduction='none'),
-                                    second_loss_func=losses.tensor_center_loss(beta=0.1),
-                                    dir_name = "CenterLoss",
-                                    training_data = [mnist_trainset],
-                                    val_data = [mnist_valset]
-                                    ),
-                    "COOL": dict(first_loss_func=losses.entropic_openset_loss(),
-                                second_loss_func=losses.objecto_center_loss(
-                                    beta=0.1,
-                                    classes=range(-1, 10, 1),
-                                    ring_size=args.Minimum_Knowns_Magnitude),
-                                dir_name = "COOL",
-                                training_data = [mnist_trainset],
-                                val_data = [mnist_valset, letters_valset]
-                                ),
+                    # "CenterLoss": dict(first_loss_func=nn.CrossEntropyLoss(reduction='none'),
+                    #                 second_loss_func=losses.tensor_center_loss(beta=0.1),
+                    #                 dir_name = "CenterLoss",
+                    #                 training_data = [mnist_trainset],
+                    #                 val_data = [mnist_valset]
+                    #                 ),
+                    # "COOL": dict(first_loss_func=losses.entropic_openset_loss(),
+                    #             second_loss_func=losses.objecto_center_loss(
+                    #                 beta=0.1,
+                    #                 classes=range(-1, 10, 1),
+                    #                 ring_size=args.Minimum_Knowns_Magnitude),
+                    #             dir_name = "COOL",
+                    #             training_data = [mnist_trainset],
+                    #             val_data = [mnist_valset, letters_valset]
+                    #             ),
                     "BG": dict(first_loss_func=nn.CrossEntropyLoss(reduction='none'),
                             second_loss_func=lambda arg1, arg2, arg3=None, arg4=None: torch.tensor(0.),
                             dir_name = "BGSoftmax",
                             training_data = [mnist_trainset],
                             val_data = [mnist_valset, letters_valset]
                             ),
-                    "entropic": dict(first_loss_func=losses.entropic_openset_loss(),
+                    "entropic": dict(first_loss_func=entropic_openset_loss(),
                                     second_loss_func=lambda arg1, arg2, arg3=None, arg4=None: torch.tensor(0.),
                                     dir_name = "Cross",
                                     training_data=[mnist_trainset],
                                     val_data = [mnist_valset, letters_valset]
                                     ),
-                    "objectosphere": dict(first_loss_func=losses.entropic_openset_loss(),
-                                        second_loss_func=losses.objectoSphere_loss(
-                                            args.Batch_Size,
-                                            knownsMinimumMag=args.Minimum_Knowns_Magnitude),
-                                        dir_name = "ObjectoSphere",
-                                        training_data = [mnist_trainset],
-                                        val_data = [mnist_valset, letters_valset]
-                                        )
+                    # "objectosphere": dict(first_loss_func=losses.entropic_openset_loss(),
+                    #                     second_loss_func=losses.objectoSphere_loss(
+                    #                         args.Batch_Size,
+                    #                         knownsMinimumMag=args.Minimum_Knowns_Magnitude),
+                    #                     dir_name = "ObjectoSphere",
+                    #                     training_data = [mnist_trainset],
+                    #                     val_data = [mnist_valset, letters_valset]
+                    #                     )
                     }
         return approach[args.approach]
 
@@ -128,10 +144,10 @@ def main():
     save_dir = results_dir/f"{dir_name}_{args.adversarial_strength:1.2f}_lots.model"
     results_dir.mkdir(parents=True, exist_ok=True)
 
-    training_data = tools.ConcatDataset(training_data,BG=args.approach == "BG")
-    validation_data = tools.ConcatDataset(validation_data,BG=args.approach == "BG")
-    net = architectures.LeNet_plus_plus(use_BG=args.approach == "BG")
-    net = tools.device(net)
+    training_data = ConcatDataset(training_data,BG=args.approach == "BG")
+    validation_data = ConcatDataset(validation_data,BG=args.approach == "BG")
+    net = LeNet_plus_plus()
+    net = net.to(device)
     train_data_loader = torch.utils.data.DataLoader(
         training_data,
         batch_size=args.Batch_Size,
@@ -157,9 +173,9 @@ def main():
 
     for epoch in range(1, args.no_of_epochs + 1, 1):  # loop over the dataset multiple times
         loss_history = []
-        train_accuracy = torch.zeros(2, dtype=int)
-        train_magnitude = torch.zeros(2, dtype=float)
-        train_confidence = torch.zeros(2, dtype=float)
+        train_accuracy = torch.zeros(2, dtype=int, device=device)
+        train_magnitude = torch.zeros(2, dtype=float, device=device)
+        train_confidence = torch.zeros(2, dtype=float, device=device)
         for b, (x, y) in enumerate(train_data_loader):
 
 #            if b % 10 == 0:
@@ -167,10 +183,10 @@ def main():
 #              sys.stdout.write(".")
 #              sys.stdout.flush()
 
-            x = tools.device(x)
-            y = tools.device(y)
+            x = x.to(device)
+            y = y.to(device)
             optimizer.zero_grad()
-            logits, features = net(x)
+            logits, features = net(x, features=True)
             if epoch<=3 and args.approach in ["COOL","CenterLoss"]:
                 loss = first_loss_func(logits, y)
             else:
@@ -180,13 +196,13 @@ def main():
                 second_loss_func.update_centers(features, y)
 
             # metrics on training set
-            train_accuracy += losses.accuracy(logits, y)
-            train_confidence += losses.confidence(logits, y)
-            if args.approach not in ("SoftMax", "BG"):
-                train_magnitude += losses.sphere(features, y, args.Minimum_Knowns_Magnitude if args.approach in ("COOL", "Objectosphere") else None)
+            train_accuracy += accuracy_known(logits, y).to(device)
+            train_confidence += confidence(logits, y)
+            # if args.approach not in ("SoftMax", "BG"):
+            #     train_magnitude += losses.sphere(features, y, args.Minimum_Knowns_Magnitude if args.approach in ("COOL", "Objectosphere") else None)
 
-            loss_history.extend(loss.tolist())
-            loss.mean().backward()
+            loss_history.append(loss)
+            loss.backward()
 
             ######################
             optimizer.step()
@@ -218,8 +234,9 @@ def main():
                 # no sample classified sufficiently well
                 continue
 
-              x_adv = losses.lots_(net, tools.device(torch.stack(x_in)), tools.device(torch.stack(t_in)), args.adversarial_strength)
-              y_adv = tools.device(torch.ones(len(x_adv), dtype=torch.long) * (10 if args.approach == "BG" else -1))
+              x_adv = lots_(net, torch.stack(x_in).to(device), torch.stack(t_in).to(device), args.adversarial_strength)
+              y_adv = torch.ones(len(x_adv), dtype=torch.long) * (10 if args.approach == "BG" else -1)
+              y_adv = y_adv.to(device)
 
 
 #              import cv2
@@ -230,24 +247,24 @@ def main():
 
               # forward pass adversarial images
               optimizer.zero_grad()
-              logits, features = net(x_adv)
+              logits, features = net(x_adv, features=True)
               if epoch<=3 and args.approach in ["COOL","CenterLoss"]:
                   loss = first_loss_func(logits, y_adv)
               else:
                   loss = first_loss_func(logits, y_adv) + args.second_loss_weight * second_loss_func(features, y_adv)
-              loss_history.extend(loss.tolist())
+              loss_history.append(loss)
 
               if args.approach in ["CenterLoss","COOL"]:
                   second_loss_func.update_centers(features, y_adv)
 
               # metrics on training set
-              train_accuracy += losses.accuracy(logits, y_adv)
-              train_confidence += losses.confidence(logits, y_adv)
-              if args.approach not in ("SoftMax", "BG"):
-                  train_magnitude += losses.sphere(features, y_adv, args.Minimum_Knowns_Magnitude if args.approach in ("COOL", "Objectosphere") else None)
+              train_accuracy += accuracy_known(logits, y_adv).to(device)
+              train_confidence += confidence(logits, y_adv)
+              # if args.approach not in ("SoftMax", "BG"):
+              #     train_magnitude += losses.sphere(features, y_adv, args.Minimum_Knowns_Magnitude if args.approach in ("COOL", "Objectosphere") else None)
 
               # train on both original and adversarial images at the same time
-              loss.mean().backward()
+              loss.backward()
 
 
  #       print()
@@ -256,18 +273,18 @@ def main():
             val_loss = torch.zeros(2, dtype=float)
             val_accuracy = torch.zeros(2, dtype=int)
             val_magnitude = torch.zeros(2, dtype=float)
-            val_confidence = torch.zeros(2, dtype=float)
+            val_confidence = torch.zeros(2, dtype=float, device=device)
             for x,y in val_data_loader:
-                x = tools.device(x)
-                y = tools.device(y)
-                outputs = net(x)
+                x = x.to(device)
+                y = y.to(device)
+                outputs = net(x, features=True)
 
                 loss = first_loss_func(outputs[0], y) + args.second_loss_weight * second_loss_func(outputs[1], y)
-                val_loss += torch.tensor((torch.sum(loss), len(loss)))
-                val_accuracy += losses.accuracy(outputs[0], y)
-                val_confidence += losses.confidence(outputs[0], y)
-                if args.approach not in ("SoftMax", "BG"):
-                    val_magnitude += losses.sphere(outputs[1], y, args.Minimum_Knowns_Magnitude if args.approach in ("COOL", "Objectosphere") else None)
+                val_loss += torch.tensor((torch.sum(loss), 1))
+                val_accuracy += accuracy_known(outputs[0], y)
+                val_confidence += confidence(outputs[0], y).to(device)
+                # if args.approach not in ("SoftMax", "BG"):
+                #     val_magnitude += losses.sphere(outputs[1], y, args.Minimum_Knowns_Magnitude if args.approach in ("COOL", "Objectosphere") else None)
 
         epoch_running_loss = torch.mean(torch.tensor(loss_history))
         writer.add_scalar('Loss/train', epoch_running_loss, epoch)

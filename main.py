@@ -31,7 +31,6 @@ learning_rate = 0.01
 trainsamples = 5000
 testsamples = 500
 
-# TODO: maybe also put solo datasets into concat dataset?
 # create Datasets
 # training_data, test_data = Data_manager.mnist_plus_letter(device)
 training_data, test_data = Data_manager.mnist_adversarials(device)
@@ -40,8 +39,8 @@ training_data, test_data = Data_manager.mnist_adversarials(device)
 # training_data, test_data = Data_manager.emnist_digits(device)
 
 # Create data loaders. # TODO: pin memory?
-train_dataloader = DataLoader(training_data, batch_size=batch_size, shuffle=True)
-test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=True)
+train_dataloader = DataLoader(training_data, batch_size=batch_size, shuffle=True, pin_memory=True)
+test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=True, pin_memory=True)
 
 # see what dimensions the input is
 # for X, y in test_dataloader:
