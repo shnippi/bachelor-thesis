@@ -40,7 +40,7 @@ training_data, test_data = Data_manager.mnist_adversarials(device)
 # training_data, test_data = Data_manager.mnist_vanilla(device)
 # training_data, test_data = Data_manager.emnist_digits(device)
 
-# Create data loaders. # TODO: pin memory?
+# Create data loaders.
 train_dataloader = DataLoader(training_data, batch_size=batch_size, shuffle=True, pin_memory=True)
 test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=True, pin_memory=True)
 
@@ -50,6 +50,7 @@ test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=True, pin
 #     print("Shape of y: ", y.shape, y.dtype)
 #     break
 
+# TODO: add load model option
 # Define model
 model = LeNet_plus_plus().to(device)
 
@@ -59,8 +60,6 @@ loss_fn = entropic_openset_loss()
 # loss_fn = nn.Softmax()
 
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
-
-
 # optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
 
