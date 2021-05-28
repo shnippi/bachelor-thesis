@@ -175,7 +175,7 @@ def main():
     for epoch in range(1, args.no_of_epochs + 1, 1):  # loop over the dataset multiple times
         loss_history = []
         train_accuracy = torch.zeros(2, dtype=int, device=device)
-        train_magnitude = torch.zeros(2, dtype=float, device=device)
+        train_magnitude = torch.zeros(2, dtype=float)
         train_confidence = torch.zeros(2, dtype=float, device=device)
         for b, (x, y) in enumerate(train_data_loader):
 

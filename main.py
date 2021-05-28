@@ -191,7 +191,8 @@ def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None
             # save model
             results_dir = pathlib.Path("/models")
             save_dir = results_dir/f"{eps}eps_{eps_iter}epsiter"
-            results_dir.mkdir(parents=True, exist_ok=True)
+            if not os.path.exists('./models'):
+                os.makedirs('./models')
             torch.save(model.state_dict(), save_dir)
 
 
