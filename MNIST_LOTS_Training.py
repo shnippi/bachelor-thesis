@@ -26,7 +26,7 @@ def command_line_options():
     parser.add_argument("--solver", action="store", dest="solver", default='sgd', choices=['sgd', 'adam'])
     parser.add_argument("--lr", action="store", dest="lr", default=0.01, type=float)
     parser.add_argument('--batch_size', help='Batch_Size', action="store", dest="Batch_Size", type=int, default=128)
-    parser.add_argument("--no_of_epochs", action="store", dest="no_of_epochs", type=int, default=70)
+    parser.add_argument("--no_of_epochs", action="store", dest="no_of_epochs", type=int, default=100)
     parser.add_argument("--dataset_root", default="data", help="Select the directory where datasets are stored.")
 
     return parser.parse_args()

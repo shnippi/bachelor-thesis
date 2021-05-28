@@ -1,3 +1,5 @@
+import os
+
 import torch
 from torch.utils.data import DataLoader, random_split, Subset
 from visualization import *
@@ -189,8 +191,7 @@ def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None
             simplescatter(features, 11, eps, eps_iter, current_iteration)
 
             # save model
-            results_dir = pathlib.Path("/models")
-            save_dir = results_dir/f"{eps}eps_{eps_iter}epsiter"
+            save_dir = os.path.join("./models", f"{eps}eps_{eps_iter}epsiter")
             if not os.path.exists('./models'):
                 os.makedirs('./models')
             torch.save(model.state_dict(), save_dir)
