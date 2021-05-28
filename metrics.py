@@ -1,4 +1,9 @@
 import torch
+from dotenv import load_dotenv
+import os
+load_dotenv()
+
+device = os.environ.get('DEVICE') if torch.cuda.is_available() else "cpu"
 
 """This file contains different metrics that can be applied to evaluate the training"""
 
@@ -61,7 +66,7 @@ def sphere(representation, target, sphere_radius=None):
             sum += torch.sum(torch.clamp(sphere_radius - magnitude, min=0.))
             total += torch.sum(known)
 
-    return torch.tensor((sum, total))
+    return torch.tensor((sum, total), device=device)
 
 
 def confidence(logits, target, negative_offset=0.1):
