@@ -17,7 +17,7 @@ def command_line_options():
                         choices=['SoftMax', 'CenterLoss', 'COOL', 'BG', 'entropic', 'objectosphere'])
     parser.add_argument('--second_loss_weight', help='Loss weight for Objectosphere loss', type=float, default=0.0001)
     parser.add_argument('--minimum_prediction', type=float, default=0.9, help="Select the minimum probability for a sample to generate an adversarial for it")
-    parser.add_argument('--adversarial_strength', type=float, default=0.1, help="Select the modification strength of the adversarial perturbation (smaller values get more difficult adversarials)")
+    parser.add_argument('--adversarial_strength', type=float, default=0.3, help="Select the modification strength of the adversarial perturbation (smaller values get more difficult adversarials)")
     parser.add_argument('--Minimum_Knowns_Magnitude', help='Minimum Possible Magnitude for the Knowns', type=float,
                         default=50.)
     parser.add_argument("--solver", action="store", dest="solver", default='sgd',choices=['sgd','adam'])

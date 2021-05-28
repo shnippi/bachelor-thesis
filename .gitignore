@@ -2,3 +2,5 @@
 __pycache__/
 /data
 /plots
+/Cross
+/logs

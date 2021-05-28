@@ -110,7 +110,6 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
                 # X, y = CnW_attack(X, y, model, loss_fn)
                 X, y = lots_attack_batch(X, y, model, feat, y_old, eps)
 
-                optimizer.zero_grad()  # TODO: remove this if doesnt help
                 pred = model(X)
 
                 # print(pred)
@@ -119,7 +118,8 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
                 loss = loss_fn(pred, y)
                 loss.backward()
 
-                optimizer.step()
+                # TODO: reverse this
+                # optimizer.step()
 
         if batch % 100 == 0:
             loss, current = loss.item(), batch * len(X)
