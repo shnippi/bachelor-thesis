@@ -54,7 +54,6 @@ test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=True, pin
 #     print("Shape of y: ", y.shape, y.dtype)
 #     break
 
-# TODO: add load model option
 # Define model
 model = LeNet_plus_plus().to(device)
 if os.environ.get('METRIC') == "t":
@@ -124,8 +123,7 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
                 loss = loss_fn(pred, y)
                 loss.backward()
 
-                # TODO: reverse this
-                # optimizer.step()
+                optimizer.step()
 
         if batch % 100 == 0:
             loss, current = loss.item(), batch * len(X)
