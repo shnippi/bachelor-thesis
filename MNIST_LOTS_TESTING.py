@@ -8,7 +8,7 @@ def command_line_options():
     parser.add_argument("--arch", default='LeNet_plus_plus', required=False,
                         choices=['LeNet', 'LeNet_plus_plus'])
     # TODO: make path dynamic
-    parser.add_argument("--model_file_name", action="store", default='models/Cross_0.30_lots.model_end')
+    parser.add_argument("--model_file_name", action="store", default='models/0.3_eps_0.3_eps_iter.model')
     parser.add_argument("--save_features", action="store_true", default=False)
     parser.add_argument("--BG_class", action="store_true", default=False)
     parser.add_argument("--Sigmoid_Plotter", action="store_true", default=False)
