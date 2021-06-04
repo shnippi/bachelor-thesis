@@ -1,5 +1,5 @@
 import os
-
+import pathlib
 import torch
 from torch.utils.data import DataLoader, random_split, Subset
 from visualization import *
@@ -16,14 +16,16 @@ from lots import lots, lots_
 
 # TODO: differences to other script:
 # 1. detach everything?
-# 2. weights on the loss function?
+# 2. weights on the loss function? --> are 0 for EOS
 # 3. Zeile 267 NO OPTIMIZER STEP AFTER ADVERSARIALS????????
+# 4. LOTS 215 --> shouldnt the input data X be diferent from the target? take x[i] instead of x[j]
 
 load_dotenv()
 
 # Get cpu or gpu device for training.
 device = os.environ.get('DEVICE') if torch.cuda.is_available() else "cpu"
 metric = os.environ.get('METRIC')
+results_dir = pathlib.Path("models")
 print("Using {} device".format(device))
 print(f"plot: {os.environ.get('PLOT')}, adversary = {os.environ.get('ADVERSARY')}, metric: {metric}")
 
@@ -55,6 +57,8 @@ test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=True, pin
 # TODO: add load model option
 # Define model
 model = LeNet_plus_plus().to(device)
+if os.environ.get('METRIC') == "t":
+    model.load("models/test.model")
 
 # loss function
 loss_fn = entropic_openset_loss()
@@ -190,12 +194,18 @@ def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None
             epsilon_table(eps_tensor, eps_list, eps_iter_list, metric, current_iteration)
             simplescatter(features, 11, eps, eps_iter, current_iteration)
 
-            # save model
-            save_dir = os.path.join("./models", f"{eps}eps_{eps_iter}epsiter")
-            if not os.path.exists('./models'):
-                os.makedirs('./models')
-            torch.save(model.state_dict(), save_dir)
 
+            # TODO: choose which save is better
+            # # save model
+            # save_dir = os.path.join("./models", f"{eps}eps_{eps_iter}epsiter")
+            # if not os.path.exists('./models'):
+            #     os.makedirs('./models')
+            # torch.save(model.state_dict(), save_dir)
+
+    # save model
+    save_dir = results_dir / f"{eps}_eps_{eps_iter}_eps_iter.model"
+    results_dir.mkdir(parents=True, exist_ok=True)
+    torch.save(model.state_dict(), save_dir)
 
 
     # print(f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
