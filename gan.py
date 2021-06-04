@@ -9,10 +9,10 @@ from torch.utils.tensorboard import SummaryWriter  # to print to tensorboard
 
 
 class Discriminator(nn.Module):
-    def __init__(self, in_features):
+    def __init__(self, img_dim):
         super().__init__()
         self.disc = nn.Sequential(
-            nn.Linear(in_features, 128),
+            nn.Linear(img_dim, 128),
             nn.LeakyReLU(0.01),
             nn.Linear(128, 1),
             nn.Sigmoid(),
