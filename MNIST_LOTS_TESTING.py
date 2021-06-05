@@ -8,7 +8,7 @@ def command_line_options():
     parser.add_argument("--arch", default='LeNet_plus_plus', required=False,
                         choices=['LeNet', 'LeNet_plus_plus'])
     # TODO: make path dynamic
-    parser.add_argument("--model_file_name", action="store", default='models/0.3_eps_0.3_eps_iter.model')
+    parser.add_argument("--model_file_name", action="store", default='models/0.3_eps_0.3_epsiter_1_iter.model')
     parser.add_argument("--save_features", action="store_true", default=False)
     parser.add_argument("--BG_class", action="store_true", default=False)
     parser.add_argument("--Sigmoid_Plotter", action="store_true", default=False)
@@ -47,7 +47,7 @@ def extract_features(args, model_file_name, data_obj, use_BG=False):
     net.load_state_dict(torch.load(model_file_name, map_location=device))
     net = net.to(device)
 
-    # TODO: call eval?
+    # TODO: IF I CALL NET.EVAL HERE THE RESULTS GET SOOOO MUCH WORSE WTFFFF
 
     data_loader = torch.utils.data.DataLoader(data_obj, batch_size=2048, shuffle=False,
                                               pin_memory=True)

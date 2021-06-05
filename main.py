@@ -138,11 +138,14 @@ eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
 accumulated_eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
 
 
+# TODO: clean this mess up
 # testing loop
 def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None, eps_iter=None):
     model.eval()
     # one nested list for each digit + 1 unknown class
     features = [[], [], [], [], [], [], [], [], [], [], []]
+    full_y = []
+    full_features = []
     # TODO: make roc more efficient --> only calculate roc when metric is roc etc.
     roc_y = torch.tensor([], dtype=torch.long).to(device)
     roc_pred = torch.tensor([], dtype=torch.long).to(device)
@@ -157,6 +160,8 @@ def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None
         for X, y in dataloader:
             X, y = X.to(device), y.to(device)
             pred, feat = model(X, features=True)
+            full_y.extend(y)
+            full_features.extend(feat.tolist())
             test_loss += loss_fn(pred, y).item()
             conf += confidence(pred, y)
             acc_known += accuracy_known(pred, y)
@@ -193,7 +198,8 @@ def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None
             simplescatter(features, 11, eps, eps_iter, current_iteration)
 
 
-            # TODO: choose which save is better
+
+            # TODO: save only if metric is highest
             # # save model
             # save_dir = os.path.join("./models", f"{eps}eps_{eps_iter}epsiter")
             # if not os.path.exists('./models'):
@@ -201,9 +207,11 @@ def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None
             # torch.save(model.state_dict(), save_dir)
 
     # save model
-    save_dir = results_dir / f"{eps}_eps_{eps_iter}_eps_iter.model"
+    save_dir = results_dir / f"{eps}_eps_{eps_iter}_epsiter_{current_iteration}iter.model"
     results_dir.mkdir(parents=True, exist_ok=True)
     torch.save(model.state_dict(), save_dir)
+
+    plotter_2D(torch.Tensor(full_features).numpy(), torch.Tensor(full_y).numpy())
 
 
     # print(f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
