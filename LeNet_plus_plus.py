@@ -1,8 +1,5 @@
 import torch.nn as nn
 
-# TODO: change batchnorm (momentum, etc)
-# TODO: track running stats = Flase if no solution
-
 class LeNet_plus_plus(nn.Module):
     def __init__(self):
         super(LeNet_plus_plus, self).__init__()
@@ -10,20 +7,20 @@ class LeNet_plus_plus(nn.Module):
         self.conv1_1 = nn.Conv2d(in_channels=1, out_channels=32, kernel_size=(5, 5), stride=1, padding=2)
         self.conv1_2 = nn.Conv2d(in_channels=self.conv1_1.out_channels, out_channels=32, kernel_size=(5, 5), stride=1,
                                  padding=2)
-        self.batch_norm1 = nn.BatchNorm2d(self.conv1_2.out_channels)
+        self.batch_norm1 = nn.BatchNorm2d(self.conv1_2.out_channels, track_running_stats=False)
         self.pool = nn.MaxPool2d(kernel_size=(2, 2), stride=2)
         # second convolution block
         self.conv2_1 = nn.Conv2d(in_channels=self.conv1_2.out_channels, out_channels=64, kernel_size=(5, 5), stride=1,
                                  padding=2)
         self.conv2_2 = nn.Conv2d(in_channels=self.conv2_1.out_channels, out_channels=64, kernel_size=(5, 5), stride=1,
                                  padding=2)
-        self.batch_norm2 = nn.BatchNorm2d(self.conv2_2.out_channels)
+        self.batch_norm2 = nn.BatchNorm2d(self.conv2_2.out_channels, track_running_stats=False)
         # third convolution block
         self.conv3_1 = nn.Conv2d(in_channels=self.conv2_2.out_channels, out_channels=128, kernel_size=(5, 5), stride=1,
                                  padding=2)
         self.conv3_2 = nn.Conv2d(in_channels=self.conv3_1.out_channels, out_channels=128, kernel_size=(5, 5), stride=1,
                                  padding=2)
-        self.batch_norm3 = nn.BatchNorm2d(self.conv3_2.out_channels)
+        self.batch_norm3 = nn.BatchNorm2d(self.conv3_2.out_channels, track_running_stats=False)
         # fully-connected layers
         self.fc1 = nn.Linear(in_features=self.conv3_2.out_channels * 3 * 3,
                              out_features=2, bias=True)
