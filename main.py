@@ -14,12 +14,6 @@ from dotenv import load_dotenv
 # from sklearn.metrics import roc_auc_score
 from lots import lots, lots_
 
-# TODO: differences to other script:
-# 1. detach everything?
-# 2. weights on the loss function? --> are 0 for EOS
-# 3. Zeile 267 NO OPTIMIZER STEP AFTER ADVERSARIALS????????
-# 4. LOTS 215 --> shouldnt the input data X be diferent from the target? take x[i] instead of x[j]
-
 load_dotenv()
 
 # Get cpu or gpu device for training.
@@ -103,7 +97,7 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
         if os.environ.get('ADVERSARY') == "t":
             feat = feat.detach()
             # TODO: find best threshold
-            # TODO: detach everything
+            # TODO: detach everything?
             # filter the samples
             # X, y, y_old = filter_correct(X, y, pred)
             X, y, y_old = filter_threshold(X, y, pred, thresh=0.9)
@@ -146,7 +140,6 @@ def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None
     features = [[], [], [], [], [], [], [], [], [], [], []]
     full_y = []
     full_features = []
-    # TODO: make roc more efficient --> only calculate roc when metric is roc etc.
     roc_y = torch.tensor([], dtype=torch.long).to(device)
     roc_pred = torch.tensor([], dtype=torch.long).to(device)
 
@@ -197,22 +190,10 @@ def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None
             epsilon_table(eps_tensor, eps_list, eps_iter_list, metric, current_iteration)
             simplescatter(features, 11, eps, eps_iter, current_iteration)
 
-
-
-            # TODO: save only if metric is highest
-            # # save model
-            # save_dir = os.path.join("./models", f"{eps}eps_{eps_iter}epsiter")
-            # if not os.path.exists('./models'):
-            #     os.makedirs('./models')
-            # torch.save(model.state_dict(), save_dir)
-
-    # save model
-    save_dir = results_dir / f"{eps}_eps_{eps_iter}_epsiter_{current_iteration}iter.model"
-    results_dir.mkdir(parents=True, exist_ok=True)
-    torch.save(model.state_dict(), save_dir)
-
-    plotter_2D(torch.Tensor(full_features).numpy(), torch.Tensor(full_y).numpy())
-
+            # safe model at the end of the iteration
+            save_dir = results_dir / f"{eps}_eps_{eps_iter}_epsiter_{current_iteration}iter.model_end"
+            results_dir.mkdir(parents=True, exist_ok=True)
+            torch.save(model.state_dict(), save_dir)
 
     # print(f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
     print(
@@ -221,7 +202,6 @@ def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None
         f"Avg loss: {test_loss:>8f} \n")
 
 
-# TODO: let the iteartions run in parallel on multiple GPUs?
 # TODO: save the flower of the max/ make better flower save system
 if __name__ == '__main__':
     # for t in range(epochs):
@@ -229,40 +209,40 @@ if __name__ == '__main__':
     #     train(train_dataloader, model, loss_fn, optimizer)
     #     test(test_dataloader, model)
 
-    for t in range(epochs):
-        print(f"Epoch {t + 1}\n-------------------------------")
-        train(train_dataloader, model, loss_fn, optimizer, eps=0.3)
-        test(test_dataloader, model, 1, t + 1, 0.3, 0.3)
+    # for t in range(epochs):
+    #     print(f"Epoch {t + 1}\n-------------------------------")
+    #     train(train_dataloader, model, loss_fn, optimizer, eps=0.3)
+    #     test(test_dataloader, model, 1, t + 1, 0.3, 0.3)
 
     # TODO: RUN THIS ON MULTIPLE GPU
-    # for iteration in range(iterations):
-    #
-    #     # reset the epsilon tensor
-    #     eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
-    #
-    #     for eps in eps_list:
-    #         for eps_iter in eps_iter_list:
-    #
-    #             # only if eps = eps_iter
-    #             if eps != eps_iter:
-    #                 continue
-    #
-    #             # seed dependent on current iteration
-    #             torch.manual_seed(iteration)
-    #             new_model = LeNet_plus_plus().to(device)
-    #             new_optimizer = torch.optim.SGD(new_model.parameters(), lr=learning_rate, momentum=0.9)
-    #
-    #             for t in range(epochs):
-    #                 print(f"Epoch {t + 1} / {epochs}, eps: {eps}, eps_iter: {eps_iter}, "
-    #                       f"iter: {iteration + 1} / {iterations}\n "
-    #                       f"------------------------------------------")
-    #                 train(train_dataloader, new_model, loss_fn, new_optimizer, eps, eps_iter)
-    #                 test(test_dataloader, new_model, iteration + 1, t + 1, eps, eps_iter)
-    #
-    #     accumulated_eps_tensor += eps_tensor
-    #
-    # mean_eps_tensor = accumulated_eps_tensor / iterations
-    # epsilon_plot(mean_eps_tensor, eps_list, eps_iter_list, metric)
-    # epsilon_table(mean_eps_tensor, eps_list, eps_iter_list, metric)
+    for iteration in range(iterations):
+
+        # reset the epsilon tensor
+        eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
+
+        for eps in eps_list:
+            for eps_iter in eps_iter_list:
+
+                # only if eps = eps_iter
+                if eps != eps_iter:
+                    continue
+
+                # seed dependent on current iteration
+                torch.manual_seed(iteration)
+                new_model = LeNet_plus_plus().to(device)
+                new_optimizer = torch.optim.SGD(new_model.parameters(), lr=learning_rate, momentum=0.9)
+
+                for t in range(epochs):
+                    print(f"Epoch {t + 1} / {epochs}, eps: {eps}, eps_iter: {eps_iter}, "
+                          f"iter: {iteration + 1} / {iterations}\n "
+                          f"------------------------------------------")
+                    train(train_dataloader, new_model, loss_fn, new_optimizer, eps, eps_iter)
+                    test(test_dataloader, new_model, iteration + 1, t + 1, eps, eps_iter)
+
+        accumulated_eps_tensor += eps_tensor
+
+    mean_eps_tensor = accumulated_eps_tensor / iterations
+    epsilon_plot(mean_eps_tensor, eps_list, eps_iter_list, metric)
+    epsilon_table(mean_eps_tensor, eps_list, eps_iter_list, metric)
 
     print("Done!")
