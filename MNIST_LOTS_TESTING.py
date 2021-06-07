@@ -49,7 +49,7 @@ def extract_features(args, model_file_name, data_obj, use_BG=False):
 
     # TODO: IF I CALL NET.EVAL HERE THE RESULTS GET SOOOO MUCH WORSE WTFFFF
 
-    data_loader = torch.utils.data.DataLoader(data_obj, batch_size=2048, shuffle=False,
+    data_loader = torch.utils.data.DataLoader(data_obj, batch_size=128, shuffle=True,
                                               pin_memory=True)
 
     gt = []

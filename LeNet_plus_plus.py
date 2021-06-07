@@ -1,5 +1,7 @@
 import torch.nn as nn
 
+# TODO: change batchnorm (momentum, etc)
+# TODO: track running stats = Flase if no solution
 
 class LeNet_plus_plus(nn.Module):
     def __init__(self):
