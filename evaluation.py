@@ -7,7 +7,6 @@ def command_line_options():
 
     parser.add_argument("--arch", default='LeNet_plus_plus', required=False,
                         choices=['LeNet', 'LeNet_plus_plus'])
-    # TODO: make path dynamic
     parser.add_argument("--model_file_name", action="store", default='models/0.3_eps_0.3_epsiter_1iter.model_end')
     parser.add_argument("--save_features", action="store_true", default=False)
     parser.add_argument("--BG_class", action="store_true", default=False)
@@ -65,7 +64,7 @@ def extract_features(args, model_file_name, data_obj, use_BG=False):
     return torch.tensor(gt), torch.tensor(fetures), torch.tensor(logits)
 
 
-def main(eps=None, epsiter=None, iter=None):
+def evaluate(eps=None, epsiter=None, iter=None):
     args = command_line_options()
     load_name = f"models/{eps}_eps_{epsiter}_epsiter_{iter}iter.model_end"
     plot_name = f"plots/{eps}_eps_{epsiter}_epsiter_{iter}iter"
@@ -186,4 +185,4 @@ def main(eps=None, epsiter=None, iter=None):
 
 
 if __name__ == "__main__":
-    main()
+    evaluate()
