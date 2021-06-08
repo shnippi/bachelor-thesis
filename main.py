@@ -11,6 +11,7 @@ import pathlib
 from loss import entropic_openset_loss
 from metrics import *
 from dotenv import load_dotenv
+import MNIST_LOTS_TESTING
 # from sklearn.metrics import roc_auc_score
 from lots import lots, lots_
 
@@ -194,6 +195,9 @@ def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None
             save_dir = results_dir / f"{eps}_eps_{eps_iter}_epsiter_{current_iteration}iter.model_end"
             results_dir.mkdir(parents=True, exist_ok=True)
             torch.save(model.state_dict(), save_dir)
+
+            # plot it
+            MNIST_LOTS_TESTING.main(eps, eps_iter, current_iteration)
 
     # print(f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
     print(

@@ -8,7 +8,7 @@ def command_line_options():
     parser.add_argument("--arch", default='LeNet_plus_plus', required=False,
                         choices=['LeNet', 'LeNet_plus_plus'])
     # TODO: make path dynamic
-    parser.add_argument("--model_file_name", action="store", default='models/0.3_eps_0.3_epsiter_1_iter.model')
+    parser.add_argument("--model_file_name", action="store", default='models/0.3_eps_0.3_epsiter_1iter.model_end')
     parser.add_argument("--save_features", action="store_true", default=False)
     parser.add_argument("--BG_class", action="store_true", default=False)
     parser.add_argument("--Sigmoid_Plotter", action="store_true", default=False)
@@ -46,8 +46,7 @@ def extract_features(args, model_file_name, data_obj, use_BG=False):
     net = LeNet_plus_plus()
     net.load_state_dict(torch.load(model_file_name, map_location=device))
     net = net.to(device)
-
-    # TODO: IF I CALL NET.EVAL HERE THE RESULTS GET SOOOO MUCH WORSE WTFFFF
+    net.eval()
 
     data_loader = torch.utils.data.DataLoader(data_obj, batch_size=128, shuffle=True,
                                               pin_memory=True)
@@ -66,9 +65,10 @@ def extract_features(args, model_file_name, data_obj, use_BG=False):
     return torch.tensor(gt), torch.tensor(fetures), torch.tensor(logits)
 
 
-def main():
+def main(eps=None, epsiter=None, iter=None):
     args = command_line_options()
-
+    load_name = f"models/{eps}_eps_{epsiter}_epsiter_{iter}iter.model_end"
+    plot_name = f"plots/{eps}_eps_{epsiter}_epsiter_{iter}iter"
     # if args.run_on_cpu:
     #     tools.set_device_cpu()
 
@@ -96,11 +96,18 @@ def main():
         plotter = lambda arg1, arg2, *args, **kwargs: None
 
     model_file_name = pathlib.Path(args.model_file_name)
-    pos_gt, pos_feat, pos_logits = extract_features(args, model_file_name, mnist_testset, args.BG_class)
+    plot_name = pathlib.Path(plot_name)
+    if eps and epsiter and iter:
+        load_name = pathlib.Path(load_name)
+    else:
+        load_name = model_file_name
+
+    pos_gt, pos_feat, pos_logits = extract_features(args, load_name, mnist_testset, args.BG_class)
+    filename = f"{eps}_eps_{epsiter}_epsiter_{iter}iter_" + 'digits_{}.{}'
     plotter(pos_feat.numpy(),
             pos_gt.numpy(),
             title=None,
-            file_name=str(model_file_name.parent / 'digits_{}.{}'),
+            file_name=str(plot_name.parent / filename),
             final=False,
             pred_weights=None,
             heat_map=False
@@ -122,12 +129,13 @@ def main():
         csv_writer.writerows(scores_data)
 
     letters_gt, letters_feat, letters_logits = extract_features(args, model_file_name, letters_testset, args.BG_class)
+    filename = f"{eps}_eps_{epsiter}_epsiter_{iter}iter_" + 'letters_{}.{}'
     plotter(pos_feat.numpy(),
             pos_gt.numpy(),
             neg_features=letters_feat.numpy(),
             neg_labels=letters_gt.numpy(),
             title=None,
-            file_name=str(model_file_name.parent / 'letters_{}.{}'),
+            file_name=str(plot_name.parent / filename),
             final=False,
             pred_weights=None,
             heat_map=False
@@ -149,12 +157,13 @@ def main():
         csv_writer.writerows(scores_data)
 
     fashion_gt, fashion_feat, fashion_logits = extract_features(args, model_file_name, fashion_testset, args.BG_class)
+    filename = f"{eps}_eps_{epsiter}_epsiter_{iter}iter_" + 'letters_{}.{}'
     plotter(pos_feat.numpy(),
             pos_gt.numpy(),
             neg_features=fashion_feat.numpy(),
             neg_labels=fashion_gt.numpy(),
             title=None,
-            file_name=str(model_file_name.parent / 'fashion_{}.{}'),
+            file_name=str(plot_name.parent / filename),
             final=False,
             pred_weights=None,
             heat_map=False
