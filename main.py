@@ -51,7 +51,7 @@ test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=True, pin
 
 # Define model
 model = LeNet_plus_plus().to(device)
-if os.environ.get('METRIC') == "t":
+if os.environ.get('LOAD') == "t":
     model.load("models/test.model")
 
 # loss function
