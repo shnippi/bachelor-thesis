@@ -127,7 +127,7 @@ def evaluate(eps=None, epsiter=None, iter=None):
         csv_writer = csv.writer(csv_file, delimiter=',')
         csv_writer.writerows(scores_data)
 
-    letters_gt, letters_feat, letters_logits = extract_features(args, model_file_name, letters_testset, args.BG_class)
+    letters_gt, letters_feat, letters_logits = extract_features(args, load_name, letters_testset, args.BG_class)
     filename = f"{eps}_eps_{epsiter}_epsiter_{iter}iter_" + 'letters_{}.{}'
     plotter(pos_feat.numpy(),
             pos_gt.numpy(),
@@ -155,7 +155,7 @@ def evaluate(eps=None, epsiter=None, iter=None):
         csv_writer = csv.writer(csv_file, delimiter=',')
         csv_writer.writerows(scores_data)
 
-    fashion_gt, fashion_feat, fashion_logits = extract_features(args, model_file_name, fashion_testset, args.BG_class)
+    fashion_gt, fashion_feat, fashion_logits = extract_features(args, load_name, fashion_testset, args.BG_class)
     filename = f"{eps}_eps_{epsiter}_epsiter_{iter}iter_" + 'letters_{}.{}'
     plotter(pos_feat.numpy(),
             pos_gt.numpy(),
