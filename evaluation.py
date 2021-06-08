@@ -156,7 +156,7 @@ def evaluate(eps=None, epsiter=None, iter=None):
         csv_writer.writerows(scores_data)
 
     fashion_gt, fashion_feat, fashion_logits = extract_features(args, load_name, fashion_testset, args.BG_class)
-    filename = f"{eps}_eps_{epsiter}_epsiter_{iter}iter_" + 'letters_{}.{}'
+    filename = f"{eps}_eps_{epsiter}_epsiter_{iter}iter_" + 'fashion_{}.{}'
     plotter(pos_feat.numpy(),
             pos_gt.numpy(),
             neg_features=fashion_feat.numpy(),
