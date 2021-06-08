@@ -32,7 +32,7 @@ learning_rate = 0.01
 trainsamples = 5000
 testsamples = 500
 
-#   TODO: MAYBE TRANSFROM THE LETTERS SOMEHOW SO BATCHNORM WORKS? (divide it by mean/std of sth idk)
+# TODO: MAYBE TRANSFROM THE LETTERS SOMEHOW SO BATCHNORM WORKS? (divide it by mean/std of sth idk)
 
 # create Datasets
 # training_data, test_data = Data_manager.mnist_plus_letter(device)

@@ -132,7 +132,7 @@ transforms = transforms.Compose(
 )
 
 # If you train on MNIST, remember to set channels_img to 1
-dataset = datasets.MNIST(root="dataset/", train=True, transform=transforms,
+dataset = datasets.MNIST(root="data", train=True, transform=transforms,
                          download=True)
 
 # comment mnist above and uncomment below if train on CelebA
