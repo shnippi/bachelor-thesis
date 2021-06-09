@@ -13,7 +13,8 @@ from metrics import *
 from dotenv import load_dotenv
 from evaluation import evaluate
 # from sklearn.metrics import roc_auc_score
-from lots import lots, lots_
+
+# TODO: clean up code (comment toggle etc)
 
 load_dotenv()
 
@@ -107,10 +108,10 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
 
             if len(X) > 0:
                 # X, y = random_perturbation(X, y)
-                # X, y = PGD_attack(X, y, model, loss_fn, eps, eps_iter)
+                X, y = PGD_attack(X, y, model, loss_fn, eps, eps_iter)
                 # X, y = FGSM_attack(X, y, model, loss_fn)
                 # X, y = CnW_attack(X, y, model, loss_fn)
-                X, y = lots_attack_batch(X, y, model, feat, y_old, eps)
+                # X, y = lots_attack_batch(X, y, model, feat, y_old, eps)
 
                 pred = model(X)
 

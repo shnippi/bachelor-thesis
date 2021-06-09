@@ -221,7 +221,9 @@ def plotter_2D(
         plt.axis('equal')
 
     plt.savefig(file_name.format('2D_plot', 'png'), bbox_inches='tight')
-    plt.show()
+    if os.environ.get('PLOT') == "t":
+        plt.show()
+    plt.close()
     if neg_features is not None:
         plot_histogram(pos_features, neg_features, pos_labels=pos_labels, neg_labels=neg_labels, title=title,
                        file_name=file_name.format('hist', 'pdf'))
@@ -275,7 +277,9 @@ def sigmoid_2D_plotter(
         plt.axis('equal')
 
     plt.savefig(file_name.format('2D_plot', 'png'), bbox_inches='tight')
-    plt.show()
+    if os.environ.get('PLOT') == "t":
+        plt.show()
+    plt.close()
     if neg_features is not None:
         plot_histogram(pos_features, neg_features, pos_labels=pos_labels, neg_labels=neg_labels, title=title,
                        file_name=file_name.format('hist', 'pdf'))
@@ -305,4 +309,6 @@ def plot_OSRC(to_plot, no_of_false_positives=None, filename=None, title=None):
     # ax.legend(loc="upper left")
     if filename is not None:
         fig.savefig(f"{filename}.pdf", bbox_inches="tight")
-    plt.show()
+    if os.environ.get('PLOT') == "t":
+        plt.show()
+    plt.close()
