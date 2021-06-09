@@ -18,7 +18,8 @@ def make_subset(device, training_data, test_data, trainsamples=None, testsamples
     return training_data, test_data
 
 
-def mnist_vanilla(device, trainsamples=None, testsamples=None):
+# vanilla MNIST
+def mnist(device, trainsamples=None, testsamples=None):
     train = datasets.MNIST(
         root="data",
         train=True,
@@ -36,6 +37,7 @@ def mnist_vanilla(device, trainsamples=None, testsamples=None):
     return make_subset(device, train, test, trainsamples, testsamples)
 
 
+# digits from EMNIST
 def emnist_digits(device, trainsamples=None, testsamples=None):
     train = datasets.EMNIST(
         root="data",
@@ -56,6 +58,7 @@ def emnist_digits(device, trainsamples=None, testsamples=None):
     return make_subset(device, train, test, trainsamples, testsamples)
 
 
+# digits from MNIST concatenated with EMNIST letters
 def mnist_plus_letter(device, trainsamples=None, testsamples=None):
     # training set
     digits_train = datasets.MNIST(
@@ -95,7 +98,8 @@ def mnist_plus_letter(device, trainsamples=None, testsamples=None):
     return make_subset(device, training_data, test_data, trainsamples, testsamples)
 
 
-def Concat_emnist(device, trainsamples=None, testsamples=None):
+# digits and letters from EMNIST
+def concat_emnist(device, trainsamples=None, testsamples=None):
     letters_train = datasets.EMNIST(
         root="data",
         split="letters",
@@ -137,7 +141,8 @@ def Concat_emnist(device, trainsamples=None, testsamples=None):
     return make_subset(device, training_data, test_data, trainsamples, testsamples)
 
 
-def mnist_adversarials(device, trainsamples=None, testsamples=None):
+# openset dataset with MNIST digits for training and MNIST digits plus EMNIST letters for testing
+def open_set(device, trainsamples=None, testsamples=None):
     # training set
     letters_train = datasets.MNIST(
         root="data",

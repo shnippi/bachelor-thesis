@@ -1,7 +1,4 @@
-import os
-import pathlib
-import torch
-from torch.utils.data import DataLoader, random_split, Subset
+from torch.utils.data import DataLoader
 from visualization import *
 from helper import *
 from attacks import *
@@ -12,58 +9,64 @@ from loss import entropic_openset_loss
 from metrics import *
 from dotenv import load_dotenv
 from evaluation import evaluate
-# from sklearn.metrics import roc_auc_score
-
-# TODO: clean up code (comment toggle etc)
 
 load_dotenv()
 
-# Get cpu or gpu device for training.
+# TODO: clean up code (comment toggle etc)
+# TODO: get some images from adversarials
+# TODO: find best threshold
+# TODO: clean up testing loop a bit
+# TODO: make a helper func to load all env variables?
+# TODO: save the flower of the max/ make better flower save system
+
+# Get device and env specifics
 device = os.environ.get('DEVICE') if torch.cuda.is_available() else "cpu"
 metric = os.environ.get('METRIC')
+dataset = os.environ.get('DATASET')
 results_dir = pathlib.Path("models")
 print("Using {} device".format(device))
-print(f"plot: {os.environ.get('PLOT')}, adversary = {os.environ.get('ADVERSARY')}, metric: {metric}")
+print(f"adversary = {os.environ.get('ADVERSARY')}, dataset = {dataset}, metric: {metric}, "
+      f"plot: {os.environ.get('PLOT')},")
 
 # Hyperparameters
 batch_size = 128 if torch.cuda.is_available() else 4
 epochs = 100 if torch.cuda.is_available() else 2
 iterations = 3
 learning_rate = 0.01
-trainsamples = 5000
-testsamples = 500
-
-# TODO: MAYBE TRANSFROM THE LETTERS SOMEHOW SO BATCHNORM WORKS? (divide it by mean/std of sth idk)
+filter_thresh = 0.9
+eps_list = [0.2, 0.3, 0.4]  # eps is upper bound for change of pixel values , educated guess : [0.1:0.5]
+eps_iter_list = eps_list
+trainsamples = 10000
+testsamples = 10000
 
 # create Datasets
-# training_data, test_data = Data_manager.mnist_plus_letter(device)
-training_data, test_data = Data_manager.mnist_adversarials(device)
-# training_data, test_data = Data_manager.Concat_emnist(device)
-# training_data, test_data = Data_manager.mnist_vanilla(device)
-# training_data, test_data = Data_manager.emnist_digits(device)
+if dataset == "mnist":
+    training_data, test_data = Data_manager.mnist(device)
+elif dataset == "emnist":
+    training_data, test_data = Data_manager.emnist_digits(device)
+elif dataset == "mnistletter":
+    training_data, test_data = Data_manager.mnist_plus_letter(device)
+elif dataset == "emnistconcat":
+    training_data, test_data = Data_manager.concat_emnist(device)
+else:
+    training_data, test_data = Data_manager.open_set(device)
 
-# Create data loaders.
+# Create data loaders
 train_dataloader = DataLoader(training_data, batch_size=batch_size, shuffle=True, pin_memory=True)
 test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=True, pin_memory=True)
 
-# see what dimensions the input is
-# for X, y in test_dataloader:
-#     print("Shape of X [N, C, H, W]: ", X.shape)
-#     print("Shape of y: ", y.shape, y.dtype)
-#     break
-
 # Define model
 model = LeNet_plus_plus().to(device)
-if os.environ.get('LOAD') == "t":
-    model.load("models/test.model")
 
 # loss function
 loss_fn = entropic_openset_loss()
-# loss_fn = nn.CrossEntropyLoss()
-# loss_fn = nn.Softmax()
 
+# optimizer
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
-# optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+
+# tensors to store the metrics for every eps-epsiter pair at every epoch
+eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
+accumulated_eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
 
 
 # training loop
@@ -82,41 +85,39 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
         #     continue
 
         X, y = X.to(device), y.to(device)
-
-        # implicitly calls forward
         pred, feat = model(X, features=True)
-        # print(feat)
-        # print(pred)
-        # print(y)
-
         loss = loss_fn(pred, y)
-        # print(loss)
 
         # Backpropagation
         loss.backward()
         optimizer.step()
         optimizer.zero_grad()
 
-        # generate and train on adversaries
-        if os.environ.get('ADVERSARY') == "t":
+        # generate and train adversaries
+        if not os.environ.get('ADVERSARY') == "f":
             feat = feat.detach()
-            # TODO: find best threshold
-            # TODO: detach everything?
-            # filter the samples
-            # X, y, y_old = filter_correct(X, y, pred)
-            X, y, y_old = filter_threshold(X, y, pred, thresh=0.9)
 
+            # filter the samples
+            if os.environ.get('FILTER') == "corr" or os.environ.get('FILTER') == "both":
+                X, y, y_old = filter_correct(X, y, pred)
+            if os.environ.get('FILTER') == "thresh" or os.environ.get('FILTER') == "both":
+                X, y, y_old = filter_threshold(X, y, pred, thresh=filter_thresh)
+
+            # check if some samples survived the filter and choose the adversary
             if len(X) > 0:
-                # X, y = random_perturbation(X, y)
-                X, y = PGD_attack(X, y, model, loss_fn, eps, eps_iter)
-                # X, y = FGSM_attack(X, y, model, loss_fn)
-                # X, y = CnW_attack(X, y, model, loss_fn)
-                # X, y = lots_attack_batch(X, y, model, feat, y_old, eps)
+
+                if os.environ.get('ADVERSARY') == "rand":
+                    X, y = random_perturbation(X, y)
+                elif os.environ.get('ADVERSARY') == "pgd":
+                    X, y = PGD_attack(X, y, model, loss_fn, eps, eps_iter)
+                elif os.environ.get('ADVERSARY') == "fgsm":
+                    X, y = FGSM_attack(X, y, model, loss_fn)
+                elif os.environ.get('ADVERSARY') == "cnw":
+                    X, y = CnW_attack(X, y, model, loss_fn)
+                elif os.environ.get('ADVERSARY') == "lots":
+                    X, y = lots_attack_batch(X, y, model, feat, y_old, eps)
 
                 pred = model(X)
-
-                # print(pred)
-                # print(y)
 
                 loss = loss_fn(pred, y)
                 loss.backward()
@@ -128,15 +129,6 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
             print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
 
 
-# eps is upper bound for change of pixel values , educated guess : [0.1:0.5]
-eps_list = [0.2, 0.3, 0.4]
-eps_iter_list = eps_list
-# tensor to store the metric values
-eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
-accumulated_eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
-
-
-# TODO: clean this mess up
 # testing loop
 def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None, eps_iter=None):
     model.eval()
@@ -152,7 +144,8 @@ def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None
 
     test_loss, conf, roc_score, correct = 0, 0, 0, 0
     acc_known = torch.tensor((1, 2))
-    with torch.no_grad():  # dont need the backward prop
+
+    with torch.no_grad():
         # iterating over every batch
         for X, y in dataloader:
             X, y = X.to(device), y.to(device)
@@ -182,7 +175,7 @@ def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None
     # plot the features with #classes
     simplescatter(features, 11)
 
-    # store conf, update and plot epsilons if given
+    # store metric, update and plot epsilons if given
     if eps and eps_iter:
         if metric == "conf":
             eps_tensor[current_epoch - 1][eps_list.index(eps)][eps_iter_list.index(eps_iter)] = conf.item()
@@ -209,7 +202,6 @@ def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None
         f"Avg loss: {test_loss:>8f} \n")
 
 
-# TODO: save the flower of the max/ make better flower save system
 if __name__ == '__main__':
     # for t in range(epochs):
     #     print(f"Epoch {t + 1}\n-------------------------------")
@@ -221,7 +213,6 @@ if __name__ == '__main__':
     #     train(train_dataloader, model, loss_fn, optimizer, eps=0.3)
     #     test(test_dataloader, model, 1, t + 1, 0.3, 0.3)
 
-    # TODO: RUN THIS ON MULTIPLE GPU
     for iteration in range(iterations):
 
         # reset the epsilon tensor
