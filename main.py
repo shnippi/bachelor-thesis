@@ -77,12 +77,9 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
     # enumerates the image in greyscale value (X) with the true label (y) in lists that are as long as the batchsize
     # ( 0 (batchnumber) , ( tensor([.. grayscale values ..]) , tensor([.. labels ..]) )  )  <-- for batchsize=1
     for batch, (X, y) in enumerate(dataloader):
-        # print(list(enumerate(dataloader))[1]) # prints a batch
-
         optimizer.zero_grad()
 
-        # if -1 not in y:
-        #     continue
+        # print(list(enumerate(dataloader))[1]) # prints a batch
 
         X, y = X.to(device), y.to(device)
         pred, feat = model(X, features=True)
