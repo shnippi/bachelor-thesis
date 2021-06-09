@@ -18,7 +18,7 @@ load_dotenv()
 # TODO: clean up testing loop a bit
 # TODO: make a helper func to load all env variables?
 # TODO: save the flower of the max/ make better flower save system
-# TODO: layernorm? IN THE PIX2PIX THEY USED INSTANCE NORM
+# TODO: layernorm? IN THE PIX2PIX THEY USED INSTANCE NORM!!!!!!!!!!!!!! --> try this!!
 # TODO: in conv2d layers bias=False because we use batchnorm?
 
 # Get device and env specifics
