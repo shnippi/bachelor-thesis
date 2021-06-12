@@ -21,6 +21,7 @@ load_dotenv()
 # TODO: layernorm? IN THE PIX2PIX THEY USED INSTANCE NORM!!!!!!!!!!!!!! --> try this!!
 # TODO: in conv2d layers bias=False because we use batchnorm?
 # TODO: declining LR
+# TODO: AUC STILL VERY HIGH EVEN WITH NO ADV TRAINING?
 
 # Get device and env specifics
 device = os.environ.get('DEVICE') if torch.cuda.is_available() else "cpu"
