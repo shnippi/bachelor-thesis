@@ -32,16 +32,18 @@ colors = np.array([
 ]).astype(np.float)
 colors = colors / 255.
 
-
+# TODO: is this correct? why multiclass?
 def roc(pred, y):
     scores = torch.ones_like(y, dtype=torch.float)
     target = torch.ones_like(y)
+
+    # binary roc_auc with label 0 for unknowns and label 1 for knowns
     for i in range(len(y)):
         if y[i] == -1:
-            scores[i] = torch.max(pred[i])
+            scores[i] = torch.max(pred[i]).item()
             target[i] = 0
         else:
-            scores[i] = pred[i][y[i]]
+            scores[i] = pred[i][y[i]].item()
 
     scores = scores.detach().numpy()
     target = target.detach().numpy()

@@ -41,8 +41,8 @@ learning_rate = 0.01
 filter_thresh = 0.9
 eps_list = [0.2, 0.3, 0.4]  # eps is upper bound for change of pixel values , educated guess : [0.1:0.5]
 eps_iter_list = eps_list
-trainsamples = 10000
-testsamples = 10000
+trainsamples = 5000
+testsamples = 1000
 
 # create Datasets
 if dataset == "mnist":
@@ -54,7 +54,7 @@ elif dataset == "mnistletter":
 elif dataset == "emnistconcat":
     training_data, test_data = Data_manager.concat_emnist(device)
 else:
-    training_data, test_data = Data_manager.open_set(device)
+    training_data, test_data = Data_manager.open_set(device, trainsamples, testsamples)
 
 # Create data loaders
 train_dataloader = DataLoader(training_data, batch_size=batch_size, shuffle=True, pin_memory=True)
