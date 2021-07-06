@@ -32,7 +32,8 @@ colors = np.array([
 ]).astype(np.float)
 colors = colors / 255.
 
-# TODO: is this correct? why multiclass?
+
+# TODO: is this correct?, move this to metrics
 def roc(pred, y):
     scores = torch.ones_like(y, dtype=torch.float)
     target = torch.ones_like(y)
@@ -48,8 +49,7 @@ def roc(pred, y):
     scores = scores.detach().numpy()
     target = target.detach().numpy()
 
-    # TODO: ovr vs ovo??
-    return roc_auc_score(target, scores, multi_class="ovo")
+    return roc_auc_score(target, scores)
 
 
 def simplescatter(features, classes, eps=None, eps_iter=None, current_iteration=None,

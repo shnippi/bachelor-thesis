@@ -161,7 +161,7 @@ def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None
 
             # add for roc
             roc_y = torch.cat((roc_y, y.detach()))
-            roc_pred = torch.cat((roc_pred, pred.detach()))
+            roc_pred = torch.cat((roc_pred, torch.nn.functional.softmax(pred, dim=1).detach()))
 
             # put the 2dfeatures for every sample in the correct sublist according to their true label(index)
             # -1 --> last sublist
