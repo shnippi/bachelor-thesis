@@ -36,10 +36,10 @@ print(f"adversary = {os.environ.get('ADVERSARY')}, dataset = {dataset}, metric: 
 # Hyperparameters
 batch_size = 128 if torch.cuda.is_available() else 4
 epochs = 100 if torch.cuda.is_available() else 1
-iterations = 1
+iterations = 3
 learning_rate = 0.01
 filter_thresh = 0.9
-eps_list = [0.2, 0.3, 0.4]  # eps is upper bound for change of pixel values , educated guess : [0.1:0.5]
+eps_list = [0.1, 0.2, 0.3, 0.4, 0.5]  # eps is upper bound for change of pixel values , educated guess : [0.1:0.5]
 eps_iter_list = eps_list
 trainsamples = 5000
 testsamples = 1000

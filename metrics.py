@@ -1,6 +1,8 @@
 import torch
 from dotenv import load_dotenv
 import os
+from sklearn.metrics import roc_auc_score
+
 load_dotenv()
 
 device = os.environ.get('DEVICE') if torch.cuda.is_available() else "cpu"
@@ -105,7 +107,23 @@ def confidence(logits, target, negative_offset=0.1):
 
     return confidence / len(logits)
 
-    #  return torch.tensor((confidence, len(logits)))
+
+def roc(pred, y):
+    scores = torch.ones_like(y, dtype=torch.float)
+    target = torch.ones_like(y)
+
+    # binary roc_auc with label 0 for unknowns and label 1 for knowns
+    for i in range(len(y)):
+        if y[i] == -1:
+            scores[i] = torch.max(pred[i]).item()
+            target[i] = 0
+        else:
+            scores[i] = pred[i][y[i]].item()
+
+    scores = scores.detach().numpy()
+    target = target.detach().numpy()
+
+    return roc_auc_score(target, scores)
 
 
 def tensor_OSRC(gt, predicted_class, score):
@@ -155,4 +173,3 @@ def tensor_OSRC(gt, predicted_class, score):
     knowns_accuracy, OSE = knowns_accuracy[threshold_indices], OSE[threshold_indices]
 
     return knowns_accuracy, OSE
-

@@ -4,7 +4,6 @@ import csv
 import torch
 from matplotlib import pyplot as plt
 import os
-from sklearn.metrics import roc_auc_score
 from metrics import tensor_OSRC
 
 colors = np.array([
@@ -32,26 +31,6 @@ colors = np.array([
     [0, 0, 0]
 ]).astype(np.float)
 colors = colors / 255.
-
-
-# TODO: is this correct?, move this to metrics
-def roc(pred, y):
-    scores = torch.ones_like(y, dtype=torch.float)
-    target = torch.ones_like(y)
-
-    # binary roc_auc with label 0 for unknowns and label 1 for knowns
-    for i in range(len(y)):
-        if y[i] == -1:
-            scores[i] = torch.max(pred[i]).item()
-            target[i] = 0
-        else:
-            scores[i] = pred[i][y[i]].item()
-
-    scores = scores.detach().numpy()
-    target = target.detach().numpy()
-
-    return roc_auc_score(target, scores)
-
 
 def simplescatter(features, classes, eps=None, eps_iter=None, current_iteration=None,
                   c=("b", "g", "r", "c", "m", "y", "orange", "lawngreen", "peru", "deeppink", "k"),
