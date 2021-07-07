@@ -1,3 +1,5 @@
+import os
+
 from torch.utils.data import DataLoader
 from visualization import *
 from helper import *
@@ -27,9 +29,11 @@ load_dotenv()
 # Get device and env specifics
 device = os.environ.get('DEVICE') if torch.cuda.is_available() else "cpu"
 dataset = os.environ.get('DATASET')
+filters = os.environ.get('FILTER')
+adversary = os.environ.get('ADVERSARY')
 results_dir = pathlib.Path("models")
 print("Using {} device".format(device))
-print(f"adversary = {os.environ.get('ADVERSARY')}, dataset = {dataset}, "
+print(f"adversary = {adversary}, dataset = {dataset}, filter = "
       f"plot: {os.environ.get('PLOT')}")
 
 # Hyperparameters
@@ -100,27 +104,29 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
         optimizer.zero_grad()
 
         # generate and train adversaries
-        if not os.environ.get('ADVERSARY') == "f":
+        if not adversary == "f":
             feat = feat.detach()
 
             # filter the samples
-            if os.environ.get('FILTER') == "corr" or os.environ.get('FILTER') == "both":
+            if filters == "corr" or filters == "both":
                 X, y, y_old = filter_correct(X, y, pred)
-            if os.environ.get('FILTER') == "thresh" or os.environ.get('FILTER') == "both":
+            if filters == "thresh" or filters == "both":
                 X, y, y_old = filter_threshold(X, y, pred, thresh=filter_thresh)
+            else:
+                y_old = y
 
             # check if some samples survived the filter and choose the adversary
             if len(X) > 0:
 
-                if os.environ.get('ADVERSARY') == "rand":
+                if adversary == "rand":
                     X, y = random_perturbation(X, y)
-                elif os.environ.get('ADVERSARY') == "pgd":
+                elif adversary == "pgd":
                     X, y = PGD_attack(X, y, model, loss_fn, eps, eps_iter)
-                elif os.environ.get('ADVERSARY') == "fgsm":
+                elif adversary == "fgsm":
                     X, y = FGSM_attack(X, y, model, loss_fn)
-                elif os.environ.get('ADVERSARY') == "cnw":
+                elif adversary == "cnw":
                     X, y = CnW_attack(X, y, model, loss_fn)
-                elif os.environ.get('ADVERSARY') == "lots":
+                elif adversary == "lots":
                     X, y = lots_attack_batch(X, y, model, feat, y_old, eps)
 
                 pred = model(X)
