@@ -30,7 +30,7 @@ dataset = os.environ.get('DATASET')
 results_dir = pathlib.Path("models")
 print("Using {} device".format(device))
 print(f"adversary = {os.environ.get('ADVERSARY')}, dataset = {dataset}, "
-      f"plot: {os.environ.get('PLOT')},")
+      f"plot: {os.environ.get('PLOT')}")
 
 # Hyperparameters
 batch_size = 128 if torch.cuda.is_available() else 4
@@ -53,7 +53,7 @@ elif dataset == "mnistletter":
 elif dataset == "emnistconcat":
     training_data, test_data = Data_manager.concat_emnist(device)
 else:
-    training_data, test_data = Data_manager.open_set(device, trainsamples, testsamples)
+    training_data, test_data = Data_manager.open_set(device)
 
 # Create data loaders
 train_dataloader = DataLoader(training_data, batch_size=batch_size, shuffle=True, pin_memory=True)
