@@ -1,10 +1,11 @@
 import numpy as np
 import itertools
-
+import csv
 import torch
 from matplotlib import pyplot as plt
 import os
 from sklearn.metrics import roc_auc_score
+from metrics import tensor_OSRC
 
 colors = np.array([
     [230, 25, 75],
@@ -166,7 +167,8 @@ def plot_histogram(pos_features, neg_features, pos_labels='Knowns', neg_labels='
         plt.title(title)
     plt.savefig(file_name.format('Hist', 'pdf'), bbox_inches='tight')
 
-    plt.show()
+    if os.environ.get('PLOT') == "t":
+        plt.show()
     plt.close()
 
 
@@ -287,7 +289,34 @@ def sigmoid_2D_plotter(
                        file_name=file_name.format('hist', 'pdf'))
 
 
-def plot_OSRC(to_plot, no_of_false_positives=None, filename=None, title=None):
+def add_OSCR(name, to_plot=None):
+
+    if to_plot is None:
+        to_plot = []
+    with open(f'models/mnist_scores.csv', mode='r') as file:
+        next(file)
+        mnist_data = list(csv.reader(file))
+        mnist_data = [x for x in mnist_data if x]
+        mnist_data = np.array(mnist_data, dtype=np.float32)
+    with open(f'models/letters_scores.csv', mode='r') as file:
+        next(file)
+        letters_data = list(csv.reader(file))
+        letters_data = [x for x in letters_data if x]
+        letters_data = np.array(letters_data, dtype=np.float32)
+    """
+    all_gt = torch.tensor(mnist_data[:,0].tolist()+(-1*torch.ones(letters_data.shape[0])).tolist()).repeat(10).view(-1)
+    all_predicted = torch.arange(10).repeat(mnist_data.shape[0]+letters_data.shape[0]).view(-1)
+    all_prob = torch.tensor(mnist_data[:,1:11].tolist()+letters_data[:,1:11].tolist()).view(-1)
+    """
+    all_gt = torch.tensor(mnist_data[:, 0].tolist() + (-1 * torch.ones(letters_data.shape[0])).tolist()).view(-1)
+    all_prob = torch.tensor(mnist_data[:, 1:11].tolist() + letters_data[:, 1:11].tolist())
+    all_prob, all_predicted = torch.max(all_prob, dim=1)
+
+    knowns_accuracy, OSE = tensor_OSRC(all_gt, all_predicted, all_prob)
+    to_plot.append((knowns_accuracy, OSE, name.split('/')[-1]))
+
+
+def plot_OSCR(to_plot, filename=None, title=None, no_of_false_positives=None):
     """
     :param to_plot: list of tuples containing (knowns_accuracy,OSE,label_name)
     :param no_of_false_positives: To write on the x axis
@@ -295,7 +324,7 @@ def plot_OSRC(to_plot, no_of_false_positives=None, filename=None, title=None):
     :return: None
     """
     fig, ax = plt.subplots()
-    if title != None:
+    if title is not None:
         fig.suptitle(title, fontsize=20)
     for plot_no, (knowns_accuracy, OSE, label_name) in enumerate(to_plot):
         ax.plot(OSE, knowns_accuracy, label=label_name)
@@ -310,7 +339,7 @@ def plot_OSRC(to_plot, no_of_false_positives=None, filename=None, title=None):
     ax.legend(loc='lower center', bbox_to_anchor=(-1.25, 0.), ncol=1, fontsize=18, frameon=False)
     # ax.legend(loc="upper left")
     if filename is not None:
-        fig.savefig(f"{filename}.pdf", bbox_inches="tight")
+        fig.savefig(f"plots/{filename}.pdf", bbox_inches="tight")
     if os.environ.get('PLOT') == "t":
         plt.show()
     plt.close()

@@ -35,8 +35,8 @@ print(f"adversary = {os.environ.get('ADVERSARY')}, dataset = {dataset}, metric: 
 
 # Hyperparameters
 batch_size = 128 if torch.cuda.is_available() else 4
-epochs = 100 if torch.cuda.is_available() else 2
-iterations = 3
+epochs = 100 if torch.cuda.is_available() else 1
+iterations = 1
 learning_rate = 0.01
 filter_thresh = 0.9
 eps_list = [0.2, 0.3, 0.4]  # eps is upper bound for change of pixel values , educated guess : [0.1:0.5]
@@ -72,6 +72,9 @@ optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
 # tensors to store the metrics for every eps-epsiter pair at every epoch
 eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
 accumulated_eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
+
+# list for OSCR curve
+eps_oscr_list = []
 
 
 # training loop
@@ -177,6 +180,7 @@ def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None
     # plot the features with #classes
     simplescatter(features, 11)
 
+    # TODO: maybe remove this first if
     # store metric, update and plot epsilons if given
     if eps and eps_iter:
         if metric == "conf":
@@ -196,6 +200,8 @@ def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None
 
             # evaluate results
             evaluate(eps, eps_iter, current_iteration)
+
+            add_OSCR(str(eps), eps_oscr_list)
 
     # print(f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
     print(
@@ -240,6 +246,8 @@ if __name__ == '__main__':
                     test(test_dataloader, new_model, iteration + 1, t + 1, eps, eps_iter)
 
         accumulated_eps_tensor += eps_tensor
+
+        plot_OSCR(eps_oscr_list, "oscr_iter" + str(iteration))
 
     mean_eps_tensor = accumulated_eps_tensor / iterations
     epsilon_plot(mean_eps_tensor, eps_list, eps_iter_list, metric)
