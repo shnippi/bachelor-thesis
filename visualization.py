@@ -32,6 +32,7 @@ colors = np.array([
 ]).astype(np.float)
 colors = colors / 255.
 
+
 def simplescatter(features, classes, eps=None, eps_iter=None, current_iteration=None,
                   c=("b", "g", "r", "c", "m", "y", "orange", "lawngreen", "peru", "deeppink", "k"),
                   s=0.1):
@@ -55,6 +56,7 @@ def simplescatter(features, classes, eps=None, eps_iter=None, current_iteration=
     plt.close()
 
 
+# TODO: generalize the naming
 def epsilon_plot(eps_tensor, eps_list, eps_iter_list, title, iteration=None):
     plt.figure(2)
     # pull out the 3rd (depth) dimension of the tensor. Now for every eps-eps_iter pair theres a list with
@@ -269,7 +271,6 @@ def sigmoid_2D_plotter(
 
 
 def add_OSCR(name, to_plot=None):
-
     if to_plot is None:
         to_plot = []
     with open(f'models/mnist_scores.csv', mode='r') as file:

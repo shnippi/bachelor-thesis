@@ -26,17 +26,16 @@ load_dotenv()
 
 # Get device and env specifics
 device = os.environ.get('DEVICE') if torch.cuda.is_available() else "cpu"
-metric = os.environ.get('METRIC')
 dataset = os.environ.get('DATASET')
 results_dir = pathlib.Path("models")
 print("Using {} device".format(device))
-print(f"adversary = {os.environ.get('ADVERSARY')}, dataset = {dataset}, metric: {metric}, "
+print(f"adversary = {os.environ.get('ADVERSARY')}, dataset = {dataset}, "
       f"plot: {os.environ.get('PLOT')},")
 
 # Hyperparameters
 batch_size = 128 if torch.cuda.is_available() else 4
 epochs = 100 if torch.cuda.is_available() else 1
-iterations = 3
+iterations = 1
 learning_rate = 0.01
 filter_thresh = 0.9
 eps_list = [0.1, 0.2, 0.3, 0.4, 0.5]  # eps is upper bound for change of pixel values , educated guess : [0.1:0.5]
@@ -70,8 +69,10 @@ loss_fn = entropic_openset_loss()
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
 
 # tensors to store the metrics for every eps-epsiter pair at every epoch
-eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
-accumulated_eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
+eps_tensor_conf = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
+eps_tensor_auc = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
+accumulated_eps_tensor_conf = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
+accumulated_eps_tensor_auc = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
 
 # list for OSCR curve
 eps_oscr_list = []
@@ -183,14 +184,15 @@ def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None
     # TODO: maybe remove this first if
     # store metric, update and plot epsilons if given
     if eps and eps_iter:
-        if metric == "conf":
-            eps_tensor[current_epoch - 1][eps_list.index(eps)][eps_iter_list.index(eps_iter)] = conf.item()
-        elif metric == "roc":
-            eps_tensor[current_epoch - 1][eps_list.index(eps)][eps_iter_list.index(eps_iter)] = roc_score
+
+        eps_tensor_conf[current_epoch - 1][eps_list.index(eps)][eps_iter_list.index(eps_iter)] = conf.item()
+        eps_tensor_auc[current_epoch - 1][eps_list.index(eps)][eps_iter_list.index(eps_iter)] = roc_score
 
         if current_epoch == epochs:  # only plot on the last epoch
-            epsilon_plot(eps_tensor, eps_list, eps_iter_list, metric, current_iteration)
-            epsilon_table(eps_tensor, eps_list, eps_iter_list, metric, current_iteration)
+            epsilon_plot(eps_tensor_conf, eps_list, eps_iter_list, "confidence", current_iteration)
+            epsilon_plot(eps_tensor_auc, eps_list, eps_iter_list, "Area Under the Curve", current_iteration)
+            epsilon_table(eps_tensor_conf, eps_list, eps_iter_list, "confidence", current_iteration)
+            epsilon_table(eps_tensor_auc, eps_list, eps_iter_list, "Area Under the Curve", current_iteration)
             simplescatter(features, 11, eps, eps_iter, current_iteration)
 
             # safe model at the end of the iteration
@@ -224,7 +226,8 @@ if __name__ == '__main__':
     for iteration in range(iterations):
 
         # reset the epsilon tensor
-        eps_tensor = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
+        eps_tensor_conf = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
+        eps_tensor_auc = torch.zeros((epochs, len(eps_list), len(eps_iter_list)))
 
         for eps in eps_list:
             for eps_iter in eps_iter_list:
@@ -245,12 +248,16 @@ if __name__ == '__main__':
                     train(train_dataloader, new_model, loss_fn, new_optimizer, eps, eps_iter)
                     test(test_dataloader, new_model, iteration + 1, t + 1, eps, eps_iter)
 
-        accumulated_eps_tensor += eps_tensor
+        accumulated_eps_tensor_conf += eps_tensor_conf
+        accumulated_eps_tensor_auc += eps_tensor_auc
 
         plot_OSCR(eps_oscr_list, "oscr_iter" + str(iteration))
 
-    mean_eps_tensor = accumulated_eps_tensor / iterations
-    epsilon_plot(mean_eps_tensor, eps_list, eps_iter_list, metric)
-    epsilon_table(mean_eps_tensor, eps_list, eps_iter_list, metric)
+    mean_eps_tensor_conf = accumulated_eps_tensor_conf / iterations
+    mean_eps_tensor_auc = accumulated_eps_tensor_auc / iterations
+    epsilon_plot(mean_eps_tensor_conf, eps_list, eps_iter_list, "confidence")
+    epsilon_plot(mean_eps_tensor_auc, eps_list, eps_iter_list, "Area Under the Curve")
+    epsilon_table(mean_eps_tensor_conf, eps_list, eps_iter_list, "confidence")
+    epsilon_table(mean_eps_tensor_auc, eps_list, eps_iter_list, "Area Under the Curve")
 
     print("Done!")
