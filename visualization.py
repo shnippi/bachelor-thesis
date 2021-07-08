@@ -276,12 +276,12 @@ def add_OSCR(name, to_plot=None):
     with open(f'models/mnist_scores.csv', mode='r') as file:
         next(file)
         mnist_data = list(csv.reader(file))
-        mnist_data = [x for x in mnist_data if x]
+        mnist_data = [x for x in mnist_data if x]  # filter out empty lists
         mnist_data = np.array(mnist_data, dtype=np.float32)
     with open(f'models/letters_scores.csv', mode='r') as file:
         next(file)
         letters_data = list(csv.reader(file))
-        letters_data = [x for x in letters_data if x]
+        letters_data = [x for x in letters_data if x]  # filter out empty lists
         letters_data = np.array(letters_data, dtype=np.float32)
     """
     all_gt = torch.tensor(mnist_data[:,0].tolist()+(-1*torch.ones(letters_data.shape[0])).tolist()).repeat(10).view(-1)
@@ -310,7 +310,7 @@ def plot_OSCR(to_plot, filename=None, title=None, no_of_false_positives=None):
         ax.plot(OSE, knowns_accuracy, label=label_name)
     ax.set_xscale('log')
     ax.autoscale(enable=True, axis='x', tight=True)
-    ax.set_ylim([0, 1])
+    ax.set_ylim([0.8, 1])
     ax.set_ylabel('Correct Classification Rate', fontsize=18, labelpad=10)
     if no_of_false_positives is not None:
         ax.set_xlabel(f"False Positive Rate : Total Unknowns {no_of_false_positives}", fontsize=18, labelpad=10)
