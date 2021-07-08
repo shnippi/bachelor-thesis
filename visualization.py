@@ -316,8 +316,8 @@ def plot_OSCR(to_plot, filename=None, title=None, no_of_false_positives=None):
         ax.set_xlabel(f"False Positive Rate : Total Unknowns {no_of_false_positives}", fontsize=18, labelpad=10)
     else:
         ax.set_xlabel(f"False Positive Rate", fontsize=18, labelpad=10)
-    ax.legend(loc='lower center', bbox_to_anchor=(-1.25, 0.), ncol=1, fontsize=18, frameon=False)
-    # ax.legend(loc="upper left")
+    # ax.legend(loc='lower center', bbox_to_anchor=(-1.25, 0.), ncol=1, fontsize=18, frameon=False)
+    ax.legend(loc="lower right")
     if filename is not None:
         fig.savefig(f"plots/{filename}.pdf", bbox_inches="tight")
     if os.environ.get('PLOT') == "t":
