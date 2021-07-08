@@ -83,7 +83,7 @@ def epsilon_plot(eps_tensor, eps_list, eps_iter_list, title, iteration=None):
         os.makedirs('./plots')
 
     if iteration:
-        plt.savefig(f"plots/epsilons_iter{iteration}.png")
+        plt.savefig(f"plots/epsilons_iter{iteration}_{title}.png")
     else:
         plt.savefig("plots/epsilons.png")
 
@@ -116,9 +116,9 @@ def epsilon_table(eps_tensor, eps_list, eps_iter_list, title, iteration=None):
         os.makedirs('./plots')
 
     if iteration:
-        plt.savefig(f"plots/table_iter{iteration}.png")
+        plt.savefig(f"plots/table_iter{iteration}_{title}.png")
     else:
-        plt.savefig("plots/table.png")
+        plt.savefig(f"plots/table_{title}.png")
 
     if os.environ.get('PLOT') == "t":
         plt.show()
