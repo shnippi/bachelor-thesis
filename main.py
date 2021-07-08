@@ -258,6 +258,7 @@ if __name__ == '__main__':
         accumulated_eps_tensor_auc += eps_tensor_auc
 
         plot_OSCR(eps_oscr_list, "oscr_iter" + str(iteration))
+        eps_oscr_list = []
 
     mean_eps_tensor_conf = accumulated_eps_tensor_conf / iterations
     mean_eps_tensor_auc = accumulated_eps_tensor_auc / iterations
