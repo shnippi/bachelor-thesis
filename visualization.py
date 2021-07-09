@@ -6,31 +6,35 @@ from matplotlib import pyplot as plt
 import os
 from metrics import tensor_OSRC
 
-colors = np.array([
-    [230, 25, 75],
-    [60, 180, 75],
-    [255, 225, 25],
-    [67, 99, 216],
-    [245, 130, 49],
-    [145, 30, 180],
-    [70, 240, 240],
-    [240, 50, 230],
-    [188, 246, 12],
-    [250, 190, 190],
-    [0, 128, 128],
-    [230, 190, 255],
-    [154, 99, 36],
-    [255, 250, 200],
-    [128, 0, 0],
-    [170, 255, 195],
-    [128, 128, 0],
-    [255, 216, 177],
-    [0, 0, 117],
-    [128, 128, 128],
-    [255, 255, 255],
-    [0, 0, 0]
-]).astype(np.float)
-colors = colors / 255.
+
+def get_colors():
+    colors = np.array([
+        [230, 25, 75],
+        [60, 180, 75],
+        [255, 225, 25],
+        [67, 99, 216],
+        [245, 130, 49],
+        [145, 30, 180],
+        [70, 240, 240],
+        [240, 50, 230],
+        [188, 246, 12],
+        [250, 190, 190],
+        [0, 128, 128],
+        [230, 190, 255],
+        [154, 99, 36],
+        [255, 250, 200],
+        [128, 0, 0],
+        [170, 255, 195],
+        [128, 128, 0],
+        [255, 216, 177],
+        [0, 0, 117],
+        [128, 128, 128],
+        [255, 255, 255],
+        [0, 0, 0]
+    ]).astype(np.float)
+    colors = colors / 255.
+
+    return colors
 
 
 def simplescatter(features, classes, eps=None, eps_iter=None, current_iteration=None,
@@ -164,7 +168,7 @@ def plotter_2D(
         final=False,
         pred_weights=None,
         heat_map=False):
-    global colors
+    colors = get_colors()
     plt.figure(figsize=[6, 6])
 
     if heat_map:
@@ -225,7 +229,7 @@ def sigmoid_2D_plotter(
         final=False,
         pred_weights=None,
         heat_map=False):
-    global colors
+    colors = get_colors()
     plt.figure(figsize=[6, 6])
 
     if heat_map:

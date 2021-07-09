@@ -199,7 +199,7 @@ def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None
             epsilon_plot(eps_tensor_auc, eps_list, eps_iter_list, "Area Under the Curve", current_iteration)
             epsilon_table(eps_tensor_conf, eps_list, eps_iter_list, "confidence", current_iteration)
             epsilon_table(eps_tensor_auc, eps_list, eps_iter_list, "Area Under the Curve", current_iteration)
-            simplescatter(features, 11, eps, eps_iter, current_iteration)
+            # simplescatter(features, 11, eps, eps_iter, current_iteration)
 
             # safe model at the end of the iteration
             save_dir = results_dir / f"{eps}_eps_{eps_iter}_epsiter_{current_iteration}iter.model_end"
