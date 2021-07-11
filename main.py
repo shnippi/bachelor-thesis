@@ -33,7 +33,7 @@ filters = os.environ.get('FILTER')
 adversary = os.environ.get('ADVERSARY')
 results_dir = pathlib.Path("models")
 print("Using {} device".format(device))
-print(f"adversary = {adversary}, dataset = {dataset}, filter = "
+print(f"adversary = {adversary}, dataset = {dataset}, filter = {filters}"
       f"plot: {os.environ.get('PLOT')}")
 
 # Hyperparameters

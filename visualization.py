@@ -73,11 +73,12 @@ def epsilon_plot(eps_tensor, eps_list, eps_iter_list, title, iteration=None):
     for i in range(len(confidences)):
         eps_index = i // len(eps_iter_list)
         eps_iter_index = i % len(eps_iter_list)
-        if confidences[i][-1] > max_conf and confidences[i][-1] > 0.5:
-            plt.plot(confidences[i], label=f"eps: {eps_list[eps_index]}, eps_iter: {eps_iter_list[eps_iter_index]}")
-            max_conf = confidences[i][-1]
-        elif confidences[i][-1] > 0.5:
-            plt.plot(confidences[i])
+        # if confidences[i][-1] > max_conf and confidences[i][-1] > 0.5:
+        #     plt.plot(confidences[i], label=f"eps: {eps_list[eps_index]}, eps_iter: {eps_iter_list[eps_iter_index]}")
+        #     max_conf = confidences[i][-1]
+        # elif confidences[i][-1] > 0.5:
+        #     plt.plot(confidences[i])
+        plt.plot(confidences[i], label=f"eps: {eps_list[eps_index]}, eps_iter: {eps_iter_list[eps_iter_index]}")
 
     plt.xlabel("epochs")
     plt.ylabel(title)
@@ -96,7 +97,6 @@ def epsilon_plot(eps_tensor, eps_list, eps_iter_list, title, iteration=None):
     plt.close()
 
 
-# TODO: make like the max the most saturated and then fading stuff
 def epsilon_table(eps_tensor, eps_list, eps_iter_list, title, iteration=None):
     plt.figure(figsize=(6, 4), dpi=800)
 
