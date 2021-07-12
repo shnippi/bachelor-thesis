@@ -78,7 +78,8 @@ def epsilon_plot(eps_tensor, eps_list, eps_iter_list, title, iteration=None):
         #     max_conf = confidences[i][-1]
         # elif confidences[i][-1] > 0.5:
         #     plt.plot(confidences[i])
-        plt.plot(confidences[i], label=f"eps: {eps_list[eps_index]}, eps_iter: {eps_iter_list[eps_iter_index]}")
+        if eps_list[eps_index] == eps_iter_list[eps_iter_index]:
+            plt.plot(confidences[i], label=f"eps: {eps_list[eps_index]}")
 
     plt.xlabel("epochs")
     plt.ylabel(title)
