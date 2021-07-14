@@ -91,7 +91,7 @@ def epsilon_plot(eps_tensor, eps_list, eps_iter_list, title, iteration=None):
     if iteration:
         plt.savefig(f"plots/epsilons_iter{iteration}_{title}.png")
     else:
-        plt.savefig("plots/epsilons.png")
+        plt.savefig(f"plots/epsilons_{title}.png")
 
     if os.environ.get('PLOT') == "t":
         plt.show()
