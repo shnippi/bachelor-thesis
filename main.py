@@ -16,17 +16,11 @@ load_dotenv()
 
 # TODO: clean up code (comment toggle etc)
 # TODO: get some images from adversarials
-# TODO: find best threshold
 # TODO: clean up testing loop a bit
 # TODO: make a helper func to load all env variables?
-# TODO: save the flower of the max/ make better flower save system
-# TODO: layernorm? IN THE PIX2PIX THEY USED INSTANCE NORM!!!!!!!!!!!!!! --> try this!!
-# TODO: in conv2d layers bias=False because we use batchnorm?
-# TODO: declining LR
-# TODO: AUC STILL VERY HIGH EVEN WITH NO ADV TRAINING?
 # TODO: change the name of the roc plot to auc plot
 
-# Get device and env specifics
+# Get device and .env specifics
 device = os.environ.get('DEVICE') if torch.cuda.is_available() else "cpu"
 dataset = os.environ.get('DATASET')
 filters = os.environ.get('FILTER')
@@ -42,7 +36,7 @@ epochs = 100 if torch.cuda.is_available() else 1
 iterations = 3
 learning_rate = 0.01
 filter_thresh = 0.9
-eps_list = [0.1, 0.2, 0.3, 0.4, 0.5]  # eps is upper bound for change of pixel values , educated guess : [0.1:0.5]
+eps_list = [0.1, 0.2, 0.3, 0.4, 0.5]  # educated guess : [0.1:0.5]
 eps_iter_list = eps_list
 trainsamples = 5000
 testsamples = 1000
@@ -92,8 +86,6 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
     for batch, (X, y) in enumerate(dataloader):
         optimizer.zero_grad()
 
-        # print(list(enumerate(dataloader))[1]) # prints a batch
-
         X, y = X.to(device), y.to(device)
         pred, feat = model(X, features=True)
         loss = loss_fn(pred, y)
@@ -115,7 +107,7 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
             else:
                 y_old = y
 
-            # check if some samples survived the filter and choose the adversary
+            # check if samples survived the filter and choose the adversary
             if len(X) > 0:
 
                 if adversary == "rand":
@@ -184,10 +176,9 @@ def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None
     conf /= n_batches
     roc_score = roc(roc_pred.to("cpu").detach(), roc_y.to("cpu").detach())
 
-    # plot the features with #classes
+    # produces a simple scatter plot with the running values during testing
     simplescatter(features, 11)
 
-    # TODO: maybe remove this first if
     # store metric, update and plot epsilons if given
     if eps and eps_iter:
 
@@ -199,7 +190,6 @@ def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None
             epsilon_plot(eps_tensor_auc, eps_list, eps_iter_list, "Area Under the Curve", current_iteration)
             epsilon_table(eps_tensor_conf, eps_list, eps_iter_list, "confidence", current_iteration)
             epsilon_table(eps_tensor_auc, eps_list, eps_iter_list, "Area Under the Curve", current_iteration)
-            # simplescatter(features, 11, eps, eps_iter, current_iteration)
 
             # safe model at the end of the iteration
             save_dir = results_dir / f"{eps}_eps_{eps_iter}_epsiter_{current_iteration}iter.model_end"
@@ -208,10 +198,8 @@ def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None
 
             # evaluate results
             evaluate(eps, eps_iter, current_iteration)
-
             add_OSCR(str(eps), eps_oscr_list)
 
-    # print(f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
     print(
         f"Test Error: \n Confidence: {conf * 100:>0.1f}%, AUC: {roc_score:>0.8f}, "
         f"acc_known: {acc_known[0] / acc_known[1] * 100:>0.1f}%, "
@@ -219,15 +207,6 @@ def test(dataloader, model, current_iteration=None, current_epoch=None, eps=None
 
 
 if __name__ == '__main__':
-    # for t in range(epochs):
-    #     print(f"Epoch {t + 1}\n-------------------------------")
-    #     train(train_dataloader, model, loss_fn, optimizer)
-    #     test(test_dataloader, model)
-
-    # for t in range(epochs):
-    #     print(f"Epoch {t + 1}\n-------------------------------")
-    #     train(train_dataloader, model, loss_fn, optimizer, eps=0.3)
-    #     test(test_dataloader, model, 1, t + 1, 0.3, 0.3)
 
     for iteration in range(iterations):
 
@@ -242,7 +221,7 @@ if __name__ == '__main__':
                 if eps != eps_iter:
                     continue
 
-                # seed dependent on current iteration
+                # set a different seed for each iteration
                 torch.manual_seed(iteration)
                 new_model = LeNet_plus_plus().to(device)
                 new_optimizer = torch.optim.SGD(new_model.parameters(), lr=learning_rate, momentum=0.9)
@@ -257,9 +236,11 @@ if __name__ == '__main__':
         accumulated_eps_tensor_conf += eps_tensor_conf
         accumulated_eps_tensor_auc += eps_tensor_auc
 
+        # plot and reset the OSCR curves
         plot_OSCR(eps_oscr_list, "oscr_iter" + str(iteration))
         eps_oscr_list = []
 
+    # calculate and plot the average results from all iterations
     mean_eps_tensor_conf = accumulated_eps_tensor_conf / iterations
     mean_eps_tensor_auc = accumulated_eps_tensor_auc / iterations
     epsilon_plot(mean_eps_tensor_conf, eps_list, eps_iter_list, "confidence")
