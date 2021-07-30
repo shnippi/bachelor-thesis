@@ -1,12 +1,8 @@
 # Deep Adversarial Training for Teaching Networks to Reject Unknown Inputs
 
-## A bachelor thesis under the supervision of [Prof. Dr. Manuel Günther](https://github.com/siebenkopf)
-
---
+### A bachelor thesis under the supervision of [Prof. Dr. Manuel Günther](https://github.com/siebenkopf)
 
 ![](./images/flowers.PNG)
-
---
 
 ## ABSTRACT
 
