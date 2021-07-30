@@ -1,4 +1,4 @@
-# Deep Adversarial Training for Teaching Networks to Reject Unknown Inputs
+# Deep Adversarial Training for Teaching Networks to Reject Unknown Inputs [[PDF](https://github.com/shnippi/bachelor-thesis/blob/master/thesis/bachelor-thesis.pdf)]
 
 
 ## ABSTRACT
