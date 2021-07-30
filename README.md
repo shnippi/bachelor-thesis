@@ -1,6 +1,5 @@
 # Deep Adversarial Training for Teaching Networks to Reject Unknown Inputs
 
-![](./images/flowers.PNG)
 
 ## ABSTRACT
 
@@ -21,6 +20,8 @@ approach effectively deals with unknown inputs and
 delivers very promising results. To our knowledge, 
 there has been no prior work that used adversarial 
 training for Open Set Recognition like in our approach.
+
+![](./images/flowers.PNG)
 
 
 
