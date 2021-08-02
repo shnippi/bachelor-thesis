@@ -45,6 +45,4 @@ epsilon range = [0.1, 0.2, 0.3, 0.4, 0.5] <br/>
 The implementation is based on Code from the 
 [Vision and Security Technology Lab](https://github.com/Vastlab/vast)
 
-
-
-### A bachelor thesis under the supervision of [Prof. Dr. Manuel Günther](https://github.com/siebenkopf)
+This bachelor thesis was done under the supervision of [Prof. Dr. Manuel Günther](https://github.com/siebenkopf)
