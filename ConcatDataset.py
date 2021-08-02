@@ -13,6 +13,8 @@ class ConcatDataset(torch.utils.data.dataset.Dataset):
                              The first dataset -> Knowns
                              The second dataset -> Background Known Unknowns (like textures) Assigned = -1 / 11 if BG = True
                              The third dataset -> Known Unknowns (like another dataset) Assigned = -2
+
+    implementation taken from https://github.com/Vastlab/vast
     """
 
     """

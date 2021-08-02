@@ -1,7 +1,10 @@
 import torch.nn as nn
 
+"""
+implementation taken from https://github.com/Vastlab/vast
+"""
 
-# TODO: instance norm?
+
 class LeNet_plus_plus(nn.Module):
     def __init__(self):
         super(LeNet_plus_plus, self).__init__()

@@ -126,6 +126,8 @@ def plot_histogram(pos_features, neg_features, pos_labels='Knowns', neg_labels='
                    file_name='{}foo.pdf'):
     """
     This function plots the Histogram for Magnitudes of feature vectors.
+
+    implementation taken from https://github.com/Vastlab/vast
     """
     pos_mag = np.sqrt(np.sum(np.square(pos_features), axis=1))
     neg_mag = np.sqrt(np.sum(np.square(neg_features), axis=1))
@@ -163,6 +165,10 @@ def plotter_2D(
         heat_map=False):
     colors = get_colors()
     plt.figure(figsize=[6, 6])
+
+    """
+    implementation taken from https://github.com/Vastlab/vast
+    """
 
     if heat_map:
         min_x, max_x = np.min(pos_features[:, 0]), np.max(pos_features[:, 0])
@@ -221,6 +227,11 @@ def sigmoid_2D_plotter(
         final=False,
         pred_weights=None,
         heat_map=False):
+
+    """
+    implementation taken from https://github.com/Vastlab/vast
+    """
+
     colors = get_colors()
     plt.figure(figsize=[6, 6])
 
@@ -267,6 +278,11 @@ def sigmoid_2D_plotter(
 
 
 def add_OSCR(name, to_plot=None):
+
+    """
+    implementation taken from https://github.com/Vastlab/vast
+    """
+
     if to_plot is None:
         to_plot = []
     with open(f'models/mnist_scores.csv', mode='r') as file:
@@ -294,6 +310,8 @@ def plot_OSCR(to_plot, filename=None, title=None, no_of_false_positives=None):
     :param no_of_false_positives: To write on the x axis
     :param filename: filename to write
     :return: None
+
+    implementation taken from https://github.com/Vastlab/vast
     """
     fig, ax = plt.subplots()
     if title is not None:

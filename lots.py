@@ -1,6 +1,10 @@
 import torch
 import torch.nn.functional as F
 
+"""
+implementation taken from https://github.com/Vastlab/vast
+"""
+
 
 def lots(network, data, target, target_class=None, epsilon=None, stepwidth=1. / 255., iterations=1):
     """Computes LOTS adversarial for the given input (which should be a single image)

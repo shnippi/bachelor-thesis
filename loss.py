@@ -7,6 +7,10 @@ load_dotenv()
 
 device = os.environ.get('DEVICE') if torch.cuda.is_available() else "cpu"
 
+"""
+implementation taken from https://github.com/Vastlab/vast
+"""
+
 
 class entropic_openset_loss():
     def __init__(self, num_of_classes=10):

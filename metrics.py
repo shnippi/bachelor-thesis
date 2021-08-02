@@ -25,6 +25,9 @@ def accuracy_known(prediction, target):
     correct: The number of correctly classified samples
 
     total: The total number of considered samples
+
+
+    implementation taken from https://github.com/Vastlab/vast
   """
 
     with torch.no_grad():
@@ -54,6 +57,9 @@ def sphere(representation, target, sphere_radius=None):
     length: The sum of the length of the samples
 
     total: The total number of considered samples
+
+
+    implementation taken from https://github.com/Vastlab/vast
   """
 
     with torch.no_grad():
@@ -86,6 +92,8 @@ def confidence(logits, target, negative_offset=0.1):
     confidence: the sum of the confidence values for the samples
 
     total: The total number of considered samples
+
+    implementation taken from https://github.com/Vastlab/vast
   """
 
     with torch.no_grad():
@@ -127,6 +135,11 @@ def roc(pred, y):
 
 
 def tensor_OSRC(gt, predicted_class, score):
+
+    """
+    implementation taken from https://github.com/Vastlab/vast
+    """
+
     if len(score.shape) != 1:
         score = score[:, 0]
     score = score.to(device)

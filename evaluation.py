@@ -40,6 +40,10 @@ import os
 
 device = os.environ.get('DEVICE') if torch.cuda.is_available() else "cpu"
 
+"""
+implementation taken from https://github.com/Vastlab/vast
+"""
+
 
 def extract_features(args, model_file_name, data_obj, use_BG=False):
     net = LeNet_plus_plus()
