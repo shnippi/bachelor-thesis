@@ -60,7 +60,6 @@ def simplescatter(features, classes, eps=None, eps_iter=None, current_iteration=
     plt.close()
 
 
-# TODO: generalize the naming
 def epsilon_plot(eps_tensor, eps_list, eps_iter_list, title, iteration=None):
     plt.figure(2)
     # pull out the 3rd (depth) dimension of the tensor. Now for every eps-eps_iter pair theres a list with
@@ -68,16 +67,9 @@ def epsilon_plot(eps_tensor, eps_list, eps_iter_list, title, iteration=None):
     confidences = eps_tensor.reshape(len(eps_tensor), -1).transpose(0, 1)
     max_conf = 0
 
-    # TODO: fix the legend
-
     for i in range(len(confidences)):
         eps_index = i // len(eps_iter_list)
         eps_iter_index = i % len(eps_iter_list)
-        # if confidences[i][-1] > max_conf and confidences[i][-1] > 0.5:
-        #     plt.plot(confidences[i], label=f"eps: {eps_list[eps_index]}, eps_iter: {eps_iter_list[eps_iter_index]}")
-        #     max_conf = confidences[i][-1]
-        # elif confidences[i][-1] > 0.5:
-        #     plt.plot(confidences[i])
         if eps_list[eps_index] == eps_iter_list[eps_iter_index]:
             plt.plot(confidences[i], label=f"eps: {eps_list[eps_index]}")
 
@@ -190,7 +182,6 @@ def plotter_2D(
         # Remove black color from knowns
         colors = colors[:-1, :]
 
-    # TODO:The following code segment needs to be improved
     colors_with_repetition = colors.tolist()
     for i in range(int(len(set(labels.tolist())) / colors.shape[0])):
         colors_with_repetition.extend(colors.tolist())
@@ -288,11 +279,7 @@ def add_OSCR(name, to_plot=None):
         letters_data = list(csv.reader(file))
         letters_data = [x for x in letters_data if x]  # filter out empty lists
         letters_data = np.array(letters_data, dtype=np.float32)
-    """
-    all_gt = torch.tensor(mnist_data[:,0].tolist()+(-1*torch.ones(letters_data.shape[0])).tolist()).repeat(10).view(-1)
-    all_predicted = torch.arange(10).repeat(mnist_data.shape[0]+letters_data.shape[0]).view(-1)
-    all_prob = torch.tensor(mnist_data[:,1:11].tolist()+letters_data[:,1:11].tolist()).view(-1)
-    """
+
     all_gt = torch.tensor(mnist_data[:, 0].tolist() + (-1 * torch.ones(letters_data.shape[0])).tolist()).view(-1)
     all_prob = torch.tensor(mnist_data[:, 1:11].tolist() + letters_data[:, 1:11].tolist())
     all_prob, all_predicted = torch.max(all_prob, dim=1)
@@ -321,7 +308,6 @@ def plot_OSCR(to_plot, filename=None, title=None, no_of_false_positives=None):
         ax.set_xlabel(f"False Positive Rate : Total Unknowns {no_of_false_positives}", fontsize=18, labelpad=10)
     else:
         ax.set_xlabel(f"False Positive Rate", fontsize=18, labelpad=10)
-    # ax.legend(loc='lower center', bbox_to_anchor=(-1.25, 0.), ncol=1, fontsize=18, frameon=False)
     ax.legend(loc="lower right")
     if filename is not None:
         fig.savefig(f"plots/{filename}.pdf", bbox_inches="tight")

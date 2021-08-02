@@ -5,13 +5,13 @@ from matplotlib import pyplot as plt
 from dotenv import load_dotenv
 from advertorch.attacks import PGDAttack, GradientSignAttack, CarliniWagnerL2Attack
 from lots import lots, lots_
+from helper import show_sample
 
 load_dotenv()
 
 device = os.environ.get('DEVICE') if torch.cuda.is_available() else "cpu"
 
-
-# TODO: ROTATE BY SMALL ANGLE IN DIRECTION OF GRADIENT (GOODFELLOW)
+# NOTE: use show_sample to display a perturbed sample
 
 
 def random_perturbation(X, y, max=0.1):
@@ -20,9 +20,6 @@ def random_perturbation(X, y, max=0.1):
         X[idx][0] += torch.rand(X[idx][0].shape, device=device) * max * random.choice([-1, 1])
 
     y = torch.ones(y.shape, dtype=torch.long, device=device) * -1
-
-    # plt.imshow(X[0][0].to("cpu"), "gray")
-    # plt.show()
 
     return X, y
 
@@ -36,9 +33,6 @@ def PGD_attack(X, y, model, loss_fn, eps=0.15, eps_iter=0.1):
     X = adversary.perturb(X, y)
     y = torch.ones(y.shape, dtype=torch.long, device=device) * -1
 
-    # plt.imshow(X[0][0].to("cpu"), "gray")
-    # plt.show()
-
     return X, y
 
 
@@ -48,26 +42,18 @@ def FGSM_attack(X, y, model, loss_fn, eps=0.15, eps_iter=0.1):
     X = adversary.perturb(X, y)
     y = torch.ones(y.shape, dtype=torch.long, device=device) * -1
 
-    # plt.imshow(X[0][0].to("cpu"), "gray")
-    # plt.show()
-
     return X, y
 
 
-# TODO: make this bad boy faster
 def CnW_attack(X, y, model, loss_fn, eps=0.15, eps_iter=0.1, num_classes=10):
     adversary = CarliniWagnerL2Attack(model.forward, num_classes, binary_search_steps=1, max_iterations=10)
 
     X = adversary.perturb(X, y)
     y = torch.ones(y.shape, dtype=torch.long, device=device) * -1
 
-    # plt.imshow(X[0][0].to("cpu"), "gray")
-    # plt.show()
-
     return X, y
 
 
-# TODO: change target
 def lots_attack_single(X, y, model, feat, y_old, eps=None):
     # for every sample get the feature targets of another sample that belongs to a different class
     target = []
@@ -84,7 +70,6 @@ def lots_attack_single(X, y, model, feat, y_old, eps=None):
     return X, y
 
 
-# TODO: change target
 def lots_attack_batch(X, y, model, feat, y_old, eps=None):
     # for every sample get the feature targets of another sample that belongs to a different class
     target = []
@@ -94,13 +79,7 @@ def lots_attack_batch(X, y, model, feat, y_old, eps=None):
             j = random.randint(0, len(y_old) - 1)
         target.append(feat[j])
 
-    # plt.imshow(X[0][0].to("cpu"), "gray")
-    # plt.show()
-
     X = lots_(model, X, torch.stack(target).to(device), eps)
     y = torch.ones(y.shape, dtype=torch.long, device=device) * -1
-
-    # plt.imshow(X[0][0].to("cpu"), "gray")
-    # plt.show()
 
     return X, y

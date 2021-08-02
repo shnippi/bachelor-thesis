@@ -2,6 +2,7 @@ import os, sys
 import torch
 from dotenv import load_dotenv
 import torch.nn.functional as F
+from matplotlib import pyplot as plt
 
 load_dotenv()
 
@@ -28,3 +29,9 @@ def filter_correct(X, y, pred):
 def filter_threshold(X, y, pred, thresh):
     correct = torch.diagonal(torch.index_select(F.softmax(pred, dim=1), dim=1, index=y) > thresh)
     return X[correct], y[correct], y
+
+
+# displays a sample
+def show_sample(X):
+    plt.imshow(X[0][0].to("cpu"), "gray")
+    plt.show()

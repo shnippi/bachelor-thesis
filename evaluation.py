@@ -68,8 +68,6 @@ def evaluate(eps=None, epsiter=None, iter=None):
     args = command_line_options()
     load_name = f"models/{eps}_eps_{epsiter}_epsiter_{iter}iter.model_end"
     plot_name = f"plots/{eps}_eps_{epsiter}_epsiter_{iter}iter"
-    # if args.run_on_cpu:
-    #     tools.set_device_cpu()
 
     mnist_testset = torchvision.datasets.MNIST(
         root=args.dataset_root,

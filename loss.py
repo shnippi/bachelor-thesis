@@ -37,18 +37,7 @@ class entropic_openset_loss():
         log_values = F.log_softmax(logit_values, dim=1)  # EOS --> -log(Softmax(x))
         negative_log_values = -1 * log_values
         loss = negative_log_values * categorical_targets  # puts the -log-values at index for each sample (rest is 0)
-        # why is there a mean here? --> doesnt matter, leave it. just pump up learning rate
         sample_loss = torch.mean(loss, dim=1)
-        # print(logit_values)
-        # print(target)
-        # print(known_indexes)
-        # print(unknown_indexes)
-        # print(categorical_targets)
-        # print(log_values)
-        # print(loss)
-        # print(sample_loss)
-
-        # print(sample_loss)
         if sample_weights is not None:
             sample_loss = sample_loss * sample_weights
         return sample_loss.mean()

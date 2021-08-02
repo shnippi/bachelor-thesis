@@ -1,5 +1,4 @@
 import os
-
 from torch.utils.data import DataLoader
 from visualization import *
 from helper import *
@@ -13,12 +12,6 @@ from dotenv import load_dotenv
 from evaluation import evaluate
 
 load_dotenv()
-
-# TODO: clean up code (comment toggle etc)
-# TODO: get some images from adversarials
-# TODO: clean up testing loop a bit
-# TODO: make a helper func to load all env variables?
-# TODO: change the name of the roc plot to auc plot
 
 # Get device and .env specifics
 device = os.environ.get('DEVICE') if torch.cuda.is_available() else "cpu"
@@ -108,7 +101,7 @@ def train(dataloader, model, loss_fn, optimizer, eps=0.15, eps_iter=0.1):
                 y_old = y
 
             # check if samples survived the filter and choose the adversary
-            if len(X) > 0:
+            if len(X) > 1:
 
                 if adversary == "rand":
                     X, y = random_perturbation(X, y)
@@ -217,7 +210,7 @@ if __name__ == '__main__':
         for eps in eps_list:
             for eps_iter in eps_iter_list:
 
-                # only if eps = eps_iter
+                # only if eps = eps_iter , remove this to allow different epsilon combination
                 if eps != eps_iter:
                     continue
 
