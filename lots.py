@@ -59,7 +59,6 @@ def lots(network, data, target, target_class=None, epsilon=None, stepwidth=1. / 
             # reduce loss by moving toward negative gradient, and assure to be in image dimensions
             data = torch.clamp(data - gradient_step, 0., 1.)
 
-    # TODO: correct place?
     network.zero_grad()
     # target has not been reached in the given number of iterations
     return data.squeeze(0), False
@@ -77,7 +76,6 @@ def lots_(network, data, target, stepwidth):
 
   :return adversarial: The adversarial image that has been created
   """
-    # TODO: IT ZEROGRADS THE NETWORK BEFORE THE FIRST ORIGINAL SAMPLE DID THE OPTIM STEP? this is bad right?
     data.requires_grad_(True)
     network.zero_grad()
 
@@ -89,8 +87,6 @@ def lots_(network, data, target, stepwidth):
 
     # get gradient
     loss.backward()
-
-    # why take gradient of data? --> because data is the input? and we want the gradients of its feautres?
     gradient = data.grad.detach()
 
     # zerograd the network again for next sample

@@ -111,8 +111,6 @@ def confidence(logits, target, negative_offset=0.1):
             # --> if the highest prob is 0.15 (for 7 f.e.), it is 0.95 confident that its sth else
             confidence += torch.sum(1. + negative_offset - torch.max(pred[~known], dim=1)[0])
 
-        # TODO: divide by the length of logits?
-
     return confidence / len(logits)
 
 
